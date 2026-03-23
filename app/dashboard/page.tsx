@@ -256,39 +256,7 @@ useEffect(() => {
   return () => clearTimeout(timeout);
 }, [profile, todos, music, authLoading, currentUser, initialDataLoaded]);
 
-  const handleSave = async () => {
-  const user = auth.currentUser;
-
-  if (!user) {
-    setSaveMessage("Du bist nicht eingeloggt.");
-    return;
-  }
-
-  try {
-    setSaving(true);
-    setSaveMessage("");
-
-    await setDoc(
-      doc(db, "users", user.uid),
-      {
-        profile,
-        todos,
-        music,
-        updatedAt: serverTimestamp(),
-      },
-      { merge: true }
-    );
-
-    setSaveMessage("Änderungen gespeichert.");
-  } catch (error) {
-    console.error("Fehler beim Speichern:", error);
-    setSaveMessage("Speichern fehlgeschlagen.");
-  } finally {
-    setSaving(false);
-  }
-};
-
-  if (authLoading) {
+   if (authLoading) {
     return (
       <main className="min-h-screen bg-[#f5efe8] p-6 text-stone-900">
         <div className="mx-auto max-w-[1380px] rounded-[32px] border border-stone-200 bg-white p-6">
@@ -372,17 +340,6 @@ useEffect(() => {
     <p className="mt-5 max-w-lg text-base leading-8 text-stone-600 md:text-lg">
       Alle wichtigen Bereiche in einer ruhigen, klaren Startseite statt in einer zugepflasterten Dashboard-Ansicht.
     </p>
-  </div>
-
-  {/* RECHTS → SAVE BUTTON */}
-  <div className="shrink-0">
-    <button
-      onClick={handleSave}
-      disabled={saving}
-      className="rounded-full bg-stone-900 px-5 py-3 text-sm font-medium text-white transition hover:opacity-90 disabled:opacity-50"
-    >
-      {saving ? "Speichert..." : "Speichern"}
-    </button>
   </div>
 
 </div>
