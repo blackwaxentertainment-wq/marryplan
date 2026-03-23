@@ -159,8 +159,7 @@ export default function DashboardPage() {
     spotify: "",
   });
 
-  const [saving, setSaving] = useState(false);
-  const [saveMessage, setSaveMessage] = useState("");
+    const [saveMessage, setSaveMessage] = useState("");
 
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [initialDataLoaded, setInitialDataLoaded] = useState(false);
@@ -255,6 +254,16 @@ useEffect(() => {
 
   return () => clearTimeout(timeout);
 }, [profile, todos, music, authLoading, currentUser, initialDataLoaded]);
+
+useEffect(() => {
+  if (!saveMessage) return;
+
+  const timeout = setTimeout(() => {
+    setSaveMessage("");
+  }, 2500);
+
+  return () => clearTimeout(timeout);
+}, [saveMessage]);
 
    if (authLoading) {
     return (
