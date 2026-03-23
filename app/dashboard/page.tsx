@@ -443,13 +443,116 @@ useEffect(() => {
                     />
                   </div>
                   <div className="p-7 md:p-8">
-                    <SectionLabel>Profil</SectionLabel>
-                    <div className="mt-6 space-y-1">
-                      <StatLine label="Brautpaar" value={profile.partnerOne || profile.partnerTwo ? `${profile.partnerOne || "Partner 1"} & ${profile.partnerTwo || "Partner 2"}` : "noch offen"} />
-                      <StatLine label="Location" value={profile.location || "noch nicht eingetragen"} />
-                      <StatLine label="Notizen" value={profile.notes || "keine Notizen hinterlegt"} />
-                    </div>
-                  </div>
+  <SectionLabel>Profil</SectionLabel>
+
+  <div className="mt-6 grid gap-4">
+    <div className="grid gap-4 md:grid-cols-2">
+      <div>
+        <label className="mb-2 block text-sm font-medium text-stone-700">
+          Partner 1
+        </label>
+        <input
+          value={profile.partnerOne}
+          onChange={(event) =>
+            setProfile((current) => ({
+              ...current,
+              partnerOne: event.target.value,
+            }))
+          }
+          className="w-full rounded-[20px] border border-stone-300 bg-[#fcfaf7] px-4 py-3 text-sm text-stone-900 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-stone-300"
+          placeholder="Name von Partner 1"
+        />
+      </div>
+
+      <div>
+        <label className="mb-2 block text-sm font-medium text-stone-700">
+          Partner 2
+        </label>
+        <input
+          value={profile.partnerTwo}
+          onChange={(event) =>
+            setProfile((current) => ({
+              ...current,
+              partnerTwo: event.target.value,
+            }))
+          }
+          className="w-full rounded-[20px] border border-stone-300 bg-[#fcfaf7] px-4 py-3 text-sm text-stone-900 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-stone-300"
+          placeholder="Name von Partner 2"
+        />
+      </div>
+    </div>
+
+    <div className="grid gap-4 md:grid-cols-2">
+      <div>
+        <label className="mb-2 block text-sm font-medium text-stone-700">
+          Hochzeitsdatum
+        </label>
+        <input
+          type="date"
+          value={profile.weddingDate}
+          onChange={(event) =>
+            setProfile((current) => ({
+              ...current,
+              weddingDate: event.target.value,
+            }))
+          }
+          className="w-full rounded-[20px] border border-stone-300 bg-[#fcfaf7] px-4 py-3 text-sm text-stone-900 focus:outline-none focus:ring-2 focus:ring-stone-300"
+        />
+      </div>
+
+      <div>
+        <label className="mb-2 block text-sm font-medium text-stone-700">
+          Gästezahl
+        </label>
+        <input
+          value={profile.guestCount}
+          onChange={(event) =>
+            setProfile((current) => ({
+              ...current,
+              guestCount: event.target.value,
+            }))
+          }
+          className="w-full rounded-[20px] border border-stone-300 bg-[#fcfaf7] px-4 py-3 text-sm text-stone-900 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-stone-300"
+          placeholder="Zum Beispiel 80"
+        />
+      </div>
+    </div>
+
+    <div>
+      <label className="mb-2 block text-sm font-medium text-stone-700">
+        Location
+      </label>
+      <input
+        value={profile.location}
+        onChange={(event) =>
+          setProfile((current) => ({
+            ...current,
+            location: event.target.value,
+          }))
+        }
+        className="w-full rounded-[20px] border border-stone-300 bg-[#fcfaf7] px-4 py-3 text-sm text-stone-900 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-stone-300"
+        placeholder="Name oder Ort der Location"
+      />
+    </div>
+
+    <div>
+      <label className="mb-2 block text-sm font-medium text-stone-700">
+        Notizen
+      </label>
+      <textarea
+        value={profile.notes}
+        onChange={(event) =>
+          setProfile((current) => ({
+            ...current,
+            notes: event.target.value,
+          }))
+        }
+        className="min-h-[120px] w-full rounded-[20px] border border-stone-300 bg-[#fcfaf7] px-4 py-3 text-sm text-stone-900 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-stone-300"
+        placeholder="Wichtige Infos, Wünsche oder offene Gedanken"
+      />
+    </div>
+  </div>
+</div>
                 </div>
               </SoftBlock>
             </section>
