@@ -338,7 +338,7 @@ useEffect(() => {
     </h1>
 
     <p className="mt-5 max-w-lg text-base leading-8 text-stone-600 md:text-lg">
-      Alle wichtigen Bereiche in einer ruhigen, klaren Startseite statt in einer zugepflasterten Dashboard-Ansicht.
+      Behalte alle wichtigen Details eurer Hochzeit entspannt im Blick. ❤️
     </p>
   </div>
 
