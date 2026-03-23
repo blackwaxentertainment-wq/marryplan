@@ -388,8 +388,8 @@ useEffect(() => {
               </div>
             </section>
 
-            <section className="grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
-              <SoftBlock className="p-5 md:p-6">
+            <section className="grid gap-6 xl:grid-cols-[0.7fr_1.3fr] items-start">
+              <SoftBlock className="h-fit self-start p-5 md:p-6">
                 <SectionLabel>Planungsstand</SectionLabel>
                 <div className="mt-4 grid gap-4 md:grid-cols-2 items-start">
                   <div>
