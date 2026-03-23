@@ -389,11 +389,11 @@ useEffect(() => {
             </section>
 
             <section className="grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
-              <SoftBlock className="p-7 md:p-8 xl:p-10">
+              <SoftBlock className="p-6 md:p-7">
                 <SectionLabel>Planungsstand</SectionLabel>
-                <div className="mt-6 grid gap-10 md:grid-cols-[0.8fr_1.2fr]">
+                <div className="mt-6 grid gap-6 md:grid-cols-2 items-center">
                   <div>
-                    <div className="text-5xl font-semibold tracking-[-0.05em] md:text-6xl">
+                    <div className="text-3xl font-semibold md:text-4xl">
                       {progress}%
                     </div>
                     <p className="mt-3 text-base leading-7 text-stone-600">
@@ -412,7 +412,7 @@ useEffect(() => {
                     </div>
 
                     <div className="grid gap-4 md:grid-cols-2">
-                      <div className="rounded-[24px] bg-[#f8f3ed] p-5">
+                      <div className="rounded-[20px] bg-[#f8f3ed] p-4">
                         <div className="flex items-center gap-2 text-sm font-medium text-stone-800">
                           <CalendarDays className="h-4 w-4" />
                           Countdown
@@ -421,7 +421,7 @@ useEffect(() => {
                           {countdown === null ? "Kein Datum" : `${countdown} Tage`}
                         </div>
                       </div>
-                      <div className="rounded-[24px] bg-[#f8f3ed] p-5">
+                      <div className="rounded-[20px] bg-[#f8f3ed] p-4">
                         <div className="flex items-center gap-2 text-sm font-medium text-stone-800">
                           <CheckCircle2 className="h-4 w-4" />
                           Offen
