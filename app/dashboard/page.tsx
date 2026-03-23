@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { auth, db } from "../lib/firebase";
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
 import {
   ArrowRight,
   CalendarDays,
@@ -159,6 +159,9 @@ export default function DashboardPage() {
     spotify: "",
   });
 
+  const [saving, setSaving] = useState(false);
+  const [saveMessage, setSaveMessage] = useState("");
+
   const countdown = useMemo(() => daysUntil(profile.weddingDate), [profile.weddingDate]);
   const completedTodos = todos.filter((item) => item.done).length;
   const openTodos = todos.filter((item) => !item.done);
@@ -214,6 +217,38 @@ export default function DashboardPage() {
     await signOut(auth);
     router.push("/login");
   };
+
+  const handleSave = async () => {
+  const user = auth.currentUser;
+
+  if (!user) {
+    setSaveMessage("Du bist nicht eingeloggt.");
+    return;
+  }
+
+  try {
+    setSaving(true);
+    setSaveMessage("");
+
+    await setDoc(
+      doc(db, "users", user.uid),
+      {
+        profile,
+        todos,
+        music,
+        updatedAt: serverTimestamp(),
+      },
+      { merge: true }
+    );
+
+    setSaveMessage("Änderungen gespeichert.");
+  } catch (error) {
+    console.error("Fehler beim Speichern:", error);
+    setSaveMessage("Speichern fehlgeschlagen.");
+  } finally {
+    setSaving(false);
+  }
+};
 
   if (authLoading) {
     return (
@@ -285,16 +320,41 @@ export default function DashboardPage() {
             <section className="overflow-hidden rounded-[40px] border border-stone-200 bg-white">
               <div className="grid gap-0 lg:grid-cols-[1.05fr_0.95fr]">
                 <div className="flex flex-col justify-between p-7 md:p-10 xl:p-12">
-                  <div>
-                    <SectionLabel>Wedding Dashboard</SectionLabel>
-                    <h1 className="mt-5 max-w-xl text-4xl font-semibold leading-[1.05] tracking-[-0.04em] md:text-6xl">
-                      {profile.partnerOne || "Eure Hochzeit"}
-                      {profile.partnerTwo ? ` & ${profile.partnerTwo}` : ""}
-                    </h1>
-                    <p className="mt-5 max-w-lg text-base leading-8 text-stone-600 md:text-lg">
-                      Alle wichtigen Bereiche in einer ruhigen, klaren Startseite statt in einer zugepflasterten Dashboard-Ansicht.
-                    </p>
-                  </div>
+                  <div className="flex items-start justify-between gap-4">
+
+  {/* LINKS */}
+  <div>
+    <SectionLabel>Wedding Dashboard</SectionLabel>
+
+    <h1 className="mt-5 max-w-xl text-4xl font-semibold leading-[1.05] tracking-[-0.04em] md:text-6xl">
+      {profile.partnerOne || "Eure Hochzeit"}
+      {profile.partnerTwo ? ` & ${profile.partnerTwo}` : ""}
+    </h1>
+
+    <p className="mt-5 max-w-lg text-base leading-8 text-stone-600 md:text-lg">
+      Alle wichtigen Bereiche in einer ruhigen, klaren Startseite statt in einer zugepflasterten Dashboard-Ansicht.
+    </p>
+  </div>
+
+  {/* RECHTS → SAVE BUTTON */}
+  <div className="shrink-0">
+    <button
+      onClick={handleSave}
+      disabled={saving}
+      className="rounded-full bg-stone-900 px-5 py-3 text-sm font-medium text-white transition hover:opacity-90 disabled:opacity-50"
+    >
+      {saving ? "Speichert..." : "Speichern"}
+    </button>
+  </div>
+
+</div>
+
+{/* 👉 HIER DIREKT DRUNTER */}
+{saveMessage && (
+  <div className="mt-4 text-sm text-stone-600">
+    {saveMessage}
+  </div>
+)}
 
                   <div className="mt-10 grid gap-6 md:grid-cols-3">
                     <div>
