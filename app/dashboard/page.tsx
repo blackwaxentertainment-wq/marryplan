@@ -389,49 +389,51 @@ useEffect(() => {
             </section>
 
             <section className="grid gap-6 xl:grid-cols-[0.7fr_1.3fr] items-start">
-              <SoftBlock className="h-fit self-start p-5 md:p-6">
-                <SectionLabel>Planungsstand</SectionLabel>
-                <div className="mt-4 grid gap-4 md:grid-cols-2 items-start">
-                  <div>
-                    <div className="text-3xl font-semibold md:text-4xl">
-                      {progress}%
-                    </div>
-                    <p className="mt-2 text-sm leading-6 text-stone-600">
-                      {completedTodos} von {todos.length} Aufgaben erledigt.
-                    </p>
-                  </div>
+  <SoftBlock className="h-fit self-start p-5 md:p-6">
+    <SectionLabel>Planungsstand</SectionLabel>
 
-                  <div className="space-y-3">
-                    <div>
-                      <div className="mb-3 h-2 rounded-full bg-stone-200">
-                        <div
-                          className="h-2 rounded-full bg-stone-900 transition-all"
-                          style={{ width: `${progress}%` }}
-                        />
-                      </div>
-                    </div>
+    <div className="mt-4">
+      <div className="h-2 rounded-full bg-stone-200">
+        <div
+          className="h-2 rounded-full bg-stone-900 transition-all"
+          style={{ width: `${progress}%` }}
+        />
+      </div>
+    </div>
 
-                    <div className="grid gap-4 md:grid-cols-2">
-                      <div className="rounded-[20px] bg-[#f8f3ed] p-4">
-                        <div className="flex items-center gap-2 text-sm font-medium text-stone-800">
-                          <CalendarDays className="h-4 w-4" />
-                          Countdown
-                        </div>
-                        <div className="mt-3 text-2xl font-semibold">
-                          {countdown === null ? "Kein Datum" : `${countdown} Tage`}
-                        </div>
-                      </div>
-                      <div className="rounded-[20px] bg-[#f8f3ed] p-4">
-                        <div className="flex items-center gap-2 text-sm font-medium text-stone-800">
-                          <CheckCircle2 className="h-4 w-4" />
-                          Offen
-                        </div>
-                        <div className="mt-3 text-2xl font-semibold">{openTodos.length} Aufgaben</div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </SoftBlock>
+    <div className="mt-5 grid gap-5">
+      <div>
+        <div className="text-3xl font-semibold tracking-[-0.02em] md:text-4xl">
+          {progress}%
+        </div>
+        <p className="mt-2 text-sm leading-6 text-stone-600">
+          {completedTodos} von {todos.length} Aufgaben erledigt.
+        </p>
+      </div>
+
+      <div className="grid gap-3 sm:grid-cols-2">
+        <div className="rounded-[20px] bg-[#f8f3ed] p-4">
+          <div className="flex items-center gap-2 text-sm font-medium text-stone-800">
+            <CalendarDays className="h-4 w-4" />
+            Countdown
+          </div>
+          <div className="mt-2 text-xl font-semibold">
+            {countdown === null ? "Kein Datum" : `${countdown} Tage`}
+          </div>
+        </div>
+
+        <div className="rounded-[20px] bg-[#f8f3ed] p-4">
+          <div className="flex items-center gap-2 text-sm font-medium text-stone-800">
+            <CheckCircle2 className="h-4 w-4" />
+            Offen
+          </div>
+          <div className="mt-2 text-xl font-semibold">
+            {openTodos.length} Aufgaben
+          </div>
+        </div>
+      </div>
+    </div>
+  </SoftBlock>
 
               <SoftBlock className="overflow-hidden">
                 <div className="grid h-full md:grid-cols-[0.95fr_1.05fr]">
