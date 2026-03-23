@@ -389,19 +389,19 @@ useEffect(() => {
             </section>
 
             <section className="grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
-              <SoftBlock className="p-6 md:p-7">
+              <SoftBlock className="p-5 md:p-6">
                 <SectionLabel>Planungsstand</SectionLabel>
-                <div className="mt-6 grid gap-6 md:grid-cols-2 items-center">
+                <div className="mt-4 grid gap-4 md:grid-cols-2 items-start">
                   <div>
                     <div className="text-3xl font-semibold md:text-4xl">
                       {progress}%
                     </div>
-                    <p className="mt-3 text-base leading-7 text-stone-600">
+                    <p className="mt-2 text-sm leading-6 text-stone-600">
                       {completedTodos} von {todos.length} Aufgaben erledigt.
                     </p>
                   </div>
 
-                  <div className="space-y-5">
+                  <div className="space-y-3">
                     <div>
                       <div className="mb-3 h-2 rounded-full bg-stone-200">
                         <div
