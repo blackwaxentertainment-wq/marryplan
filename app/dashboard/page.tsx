@@ -162,6 +162,9 @@ export default function DashboardPage() {
   const [saving, setSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState("");
 
+  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [initialDataLoaded, setInitialDataLoaded] = useState(false);
+
   const countdown = useMemo(() => daysUntil(profile.weddingDate), [profile.weddingDate]);
   const completedTodos = todos.filter((item) => item.done).length;
   const openTodos = todos.filter((item) => !item.done);
@@ -170,9 +173,12 @@ export default function DashboardPage() {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (!user || !user.emailVerified) {
-        router.push("/login");
-        return;
-      }
+  setCurrentUser(null);
+  router.push("/login");
+  return;
+}
+
+setCurrentUser(user);
 
       try {
         const snapshot = await getDoc(doc(db, "users", user.uid));
@@ -205,9 +211,10 @@ export default function DashboardPage() {
         }
       } catch (error) {
         console.error("Fehler beim Laden des Dashboards:", error);
-      } finally {
-        setAuthLoading(false);
-      }
+    } finally {
+  setAuthLoading(false);
+  setInitialDataLoaded(true);
+}
     });
 
     return () => unsubscribe();
@@ -217,6 +224,37 @@ export default function DashboardPage() {
     await signOut(auth);
     router.push("/login");
   };
+
+// 👉 AUTO SAVE HIER EINFÜGEN
+useEffect(() => {
+  if (authLoading) return;
+  if (!initialDataLoaded) return;
+  if (!currentUser) return;
+
+  const timeout = setTimeout(async () => {
+    try {
+      setSaveMessage("Speichert...");
+
+      await setDoc(
+        doc(db, "users", currentUser.uid),
+        {
+          profile,
+          todos,
+          music,
+          updatedAt: serverTimestamp(),
+        },
+        { merge: true }
+      );
+
+      setSaveMessage("Automatisch gespeichert");
+    } catch (error) {
+      console.error("Auto Save Fehler:", error);
+      setSaveMessage("Automatisches Speichern fehlgeschlagen");
+    }
+  }, 800);
+
+  return () => clearTimeout(timeout);
+}, [profile, todos, music, authLoading, currentUser, initialDataLoaded]);
 
   const handleSave = async () => {
   const user = auth.currentUser;
