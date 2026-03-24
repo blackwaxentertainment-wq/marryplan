@@ -406,20 +406,17 @@ export default function DashboardPage() {
     return () => clearTimeout(timeout);
   }, [profile, todos, music, authLoading, currentUser, initialDataLoaded]);
 
-  useEffect(() => {
-  let lastScrollY = window.scrollY;
-
-  const handleScroll = () => {
-    if (window.scrollY > lastScrollY && window.scrollY > 100) {
-      setHideSidebar(true);
-    } else {
+useEffect(() => {
+  const handleMouseMove = (event: MouseEvent) => {
+    if (event.clientX <= 80) {
       setHideSidebar(false);
+    } else {
+      setHideSidebar(true);
     }
-    lastScrollY = window.scrollY;
   };
 
-  window.addEventListener("scroll", handleScroll);
-  return () => window.removeEventListener("scroll", handleScroll);
+  window.addEventListener("mousemove", handleMouseMove);
+  return () => window.removeEventListener("mousemove", handleMouseMove);
 }, []);
 
   useEffect(() => {
@@ -445,17 +442,25 @@ export default function DashboardPage() {
   return (
     <main className="min-h-screen bg-[#f5efe8] text-stone-900">
   <div className="mx-auto max-w-[1380px] px-4 py-4 md:px-6 md:py-6">
-    <div className="grid gap-6 xl:grid-cols-[250px_minmax(0,1fr)]">
-      <div
-        className="fixed left-0 top-0 z-50 h-full w-10"
-        onMouseEnter={() => setHideSidebar(false)}
-      />
+    <div
+  className={`grid gap-6 transition-all duration-300 ${
+    hideSidebar
+      ? "xl:grid-cols-[0px_minmax(0,1fr)]"
+      : "xl:grid-cols-[250px_minmax(0,1fr)]"
+  }`}
+>
+  <div
+    className="fixed left-0 top-0 z-50 h-full w-16"
+    onMouseEnter={() => setHideSidebar(false)}
+  />
 
       <aside
-        className={`xl:sticky xl:top-6 xl:h-[calc(100vh-3rem)] transition-transform duration-300 ${
-          hideSidebar ? "-translate-x-[85%]" : "translate-x-0"
-        }`}
-      >
+  className={`xl:sticky xl:top-6 xl:h-[calc(100vh-3rem)] overflow-hidden transition-all duration-300 ${
+    hideSidebar
+      ? "pointer-events-none opacity-0 xl:w-0"
+      : "opacity-100 xl:w-[250px]"
+  }`}
+>
         <div className="flex h-full flex-col rounded-[34px] border border-stone-200 bg-[#fbf7f2] p-5">
           <div className="flex items-center gap-3">
             <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-stone-900 text-white">
