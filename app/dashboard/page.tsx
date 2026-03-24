@@ -425,65 +425,6 @@ export default function DashboardPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#f5efe8] text-stone-900">
-      <div className="mx-auto max-w-[1380px] px-4 py-4 md:px-6 md:py-6">
-        <div className="space-y-6">
-          <header className="sticky top-4 z-40 rounded-[28px] border border-stone-200 bg-[#fbf7f2]/95 px-5 py-4 backdrop-blur">
-            <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
-              <div className="flex items-center gap-3">
-                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-stone-900 text-white">
-                  <Heart className="h-5 w-5" />
-                </div>
-                <div>
-                  <div className="text-lg font-semibold leading-none">Marryplan</div>
-                  <div className="mt-1 text-sm text-stone-500">Wedding Dashboard</div>
-                </div>
-              </div>
-
-              <nav className="flex flex-wrap items-center gap-2">
-                <MinimalNavItem
-                  href="/dashboard"
-                  label="Übersicht"
-                  icon={LayoutDashboard}
-                  active
-                />
-                <MinimalNavItem
-                  href="/dashboard/budget"
-                  label="Budgetplaner"
-                  icon={PiggyBank}
-                />
-                <MinimalNavItem
-                  href="/dashboard/sitzplan"
-                  label="Sitzplan"
-                  icon={Users}
-                />
-                <MinimalNavItem
-                  href="/dashboard"
-                  label="Musik"
-                  icon={Music4}
-                />
-                <MinimalNavItem
-                  href="/dashboard"
-                  label="Dokumente"
-                  icon={FolderOpen}
-                />
-              </nav>
-
-              <div className="flex items-center gap-3">
-                <div className="hidden text-sm text-stone-500 xl:block">
-                  {auth.currentUser?.email}
-                </div>
-                <button
-                  onClick={handleLogout}
-                  className="inline-flex items-center justify-center gap-2 rounded-full bg-stone-900 px-4 py-3 text-sm font-medium text-white transition hover:opacity-90"
-                >
-                  <LogOut className="h-4 w-4" />
-                  Ausloggen
-                </button>
-              </div>
-            </div>
-          </header>
-
           <div className="space-y-6">
             <section className="overflow-hidden rounded-[40px] border border-stone-200 bg-white">
               <div className="grid gap-0 lg:grid-cols-[1.05fr_0.95fr]">
@@ -1005,8 +946,5 @@ export default function DashboardPage() {
               </SoftBlock>
             </section>
           </div>
-        </div>
-      </div>
-    </main>
   );
 }
