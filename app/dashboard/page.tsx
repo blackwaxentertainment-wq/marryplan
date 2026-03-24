@@ -169,6 +169,7 @@ export default function DashboardPage() {
 
   const [hideSidebar, setHideSidebar] = useState(false);
   const [isSidebarHovered, setIsSidebarHovered] = useState(false);
+  const [sidebarCloseTimeout, setSidebarCloseTimeout] = useState<NodeJS.Timeout | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
   const [profile, setProfile] = useState<ProfileType>({
     partnerOne: "",
@@ -410,18 +411,17 @@ export default function DashboardPage() {
 useEffect(() => {
   const handleMouseMove = (e: MouseEvent) => {
     if (e.clientX <= 80) {
+      if (sidebarCloseTimeout) {
+        clearTimeout(sidebarCloseTimeout);
+        setSidebarCloseTimeout(null);
+      }
       setHideSidebar(false);
-      return;
-    }
-
-    if (!isSidebarHovered) {
-      setHideSidebar(true);
     }
   };
 
   window.addEventListener("mousemove", handleMouseMove);
   return () => window.removeEventListener("mousemove", handleMouseMove);
-}, [isSidebarHovered]);
+}, [sidebarCloseTimeout]);
 
   useEffect(() => {
     if (!saveMessage) return;
@@ -458,16 +458,23 @@ useEffect(() => {
     onMouseEnter={() => setHideSidebar(false)}
   />
 
-      <aside
+<aside
   onMouseEnter={() => {
+    if (sidebarCloseTimeout) {
+      clearTimeout(sidebarCloseTimeout);
+      setSidebarCloseTimeout(null);
+    }
     setIsSidebarHovered(true);
     setHideSidebar(false);
   }}
   onMouseLeave={() => {
     setIsSidebarHovered(false);
-    setTimeout(() => {
+
+    const timeout = setTimeout(() => {
       setHideSidebar(true);
-    }, 300);
+    }, 500);
+
+    setSidebarCloseTimeout(timeout);
   }}
   className={`xl:sticky xl:top-6 xl:h-[calc(100vh-3rem)] overflow-hidden transition-all duration-300 ${
     hideSidebar
