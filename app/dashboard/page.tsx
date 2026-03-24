@@ -168,6 +168,7 @@ export default function DashboardPage() {
   const router = useRouter();
 
   const [hideSidebar, setHideSidebar] = useState(false);
+  const [isSidebarHovered, setIsSidebarHovered] = useState(false);
   const [authLoading, setAuthLoading] = useState(true);
   const [profile, setProfile] = useState<ProfileType>({
     partnerOne: "",
@@ -407,17 +408,20 @@ export default function DashboardPage() {
   }, [profile, todos, music, authLoading, currentUser, initialDataLoaded]);
 
 useEffect(() => {
-  const handleMouseMove = (event: MouseEvent) => {
-    if (event.clientX <= 80) {
+  const handleMouseMove = (e: MouseEvent) => {
+    if (e.clientX <= 80) {
       setHideSidebar(false);
-    } else {
+      return;
+    }
+
+    if (!isSidebarHovered) {
       setHideSidebar(true);
     }
   };
 
   window.addEventListener("mousemove", handleMouseMove);
   return () => window.removeEventListener("mousemove", handleMouseMove);
-}, []);
+}, [isSidebarHovered]);
 
   useEffect(() => {
     if (!saveMessage) return;
@@ -455,6 +459,16 @@ useEffect(() => {
   />
 
       <aside
+  onMouseEnter={() => {
+    setIsSidebarHovered(true);
+    setHideSidebar(false);
+  }}
+  onMouseLeave={() => {
+    setIsSidebarHovered(false);
+    setTimeout(() => {
+      setHideSidebar(true);
+    }, 300);
+  }}
   className={`xl:sticky xl:top-6 xl:h-[calc(100vh-3rem)] overflow-hidden transition-all duration-300 ${
     hideSidebar
       ? "pointer-events-none opacity-0 xl:w-0"
