@@ -1,6 +1,12 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import {
+  useEffect,
+  useMemo,
+  useState,
+  type ElementType,
+  type ReactNode,
+} from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { auth, db } from "../lib/firebase";
@@ -115,7 +121,7 @@ function MinimalNavItem({
 }: {
   href: string;
   label: string;
-  icon: React.ElementType;
+  icon: ElementType;
   active?: boolean;
 }) {
   return (
@@ -161,6 +167,7 @@ function SoftBlock({
 export default function DashboardPage() {
   const router = useRouter();
 
+  const [hideSidebar, setHideSidebar] = useState(false);
   const [authLoading, setAuthLoading] = useState(true);
   const [profile, setProfile] = useState<ProfileType>({
     partnerOne: "",
@@ -400,6 +407,22 @@ export default function DashboardPage() {
   }, [profile, todos, music, authLoading, currentUser, initialDataLoaded]);
 
   useEffect(() => {
+  let lastScrollY = window.scrollY;
+
+  const handleScroll = () => {
+    if (window.scrollY > lastScrollY && window.scrollY > 100) {
+      setHideSidebar(true);
+    } else {
+      setHideSidebar(false);
+    }
+    lastScrollY = window.scrollY;
+  };
+
+  window.addEventListener("scroll", handleScroll);
+  return () => window.removeEventListener("scroll", handleScroll);
+}, []);
+
+  useEffect(() => {
     if (!saveMessage) return;
 
     const timeout = setTimeout(() => {
@@ -421,19 +444,28 @@ export default function DashboardPage() {
 
   return (
     <main className="min-h-screen bg-[#f5efe8] text-stone-900">
-      <div className="mx-auto max-w-[1380px] px-4 py-4 md:px-6 md:py-6">
-        <div className="grid gap-6 xl:grid-cols-[250px_minmax(0,1fr)]">
-          <aside className="xl:sticky xl:top-6 xl:h-[calc(100vh-3rem)]">
-            <div className="flex h-full flex-col rounded-[34px] border border-stone-200 bg-[#fbf7f2] p-5">
-              <div className="flex items-center gap-3">
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-stone-900 text-white">
-                  <Heart className="h-5 w-5" />
-                </div>
-                <div>
-                  <div className="text-lg font-semibold">Marryplan</div>
-                  <div className="text-sm text-stone-500">Wedding Dashboard</div>
-                </div>
-              </div>
+  <div className="mx-auto max-w-[1380px] px-4 py-4 md:px-6 md:py-6">
+    <div className="grid gap-6 xl:grid-cols-[250px_minmax(0,1fr)]">
+      <div
+        className="fixed left-0 top-0 z-50 h-full w-10"
+        onMouseEnter={() => setHideSidebar(false)}
+      />
+
+      <aside
+        className={`xl:sticky xl:top-6 xl:h-[calc(100vh-3rem)] transition-transform duration-300 ${
+          hideSidebar ? "-translate-x-[85%]" : "translate-x-0"
+        }`}
+      >
+        <div className="flex h-full flex-col rounded-[34px] border border-stone-200 bg-[#fbf7f2] p-5">
+          <div className="flex items-center gap-3">
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-stone-900 text-white">
+              <Heart className="h-5 w-5" />
+            </div>
+            <div>
+              <div className="text-lg font-semibold">Marryplan</div>
+              <div className="text-sm text-stone-500">Wedding Dashboard</div>
+            </div>
+          </div>
 
               <div className="mt-8 space-y-2">
                 <MinimalNavItem href="/dashboard" label="Übersicht" icon={LayoutDashboard} active />
