@@ -826,10 +826,10 @@ export default function BudgetPage() {
               <div className="grid gap-6 lg:grid-cols-[1.2fr_.8fr]">
                 <div>
                   <span className="inline-flex rounded-full border border-[rgba(233,154,108,.35)] bg-white px-3 py-2 text-[12px] font-extrabold uppercase tracking-[.04em] text-[#c97748]">
-                    Wedding Hub Tool
+                    MarryPlan Tool
                   </span>
                   <h1 className="mt-4 text-[clamp(28px,4vw,50px)] font-semibold leading-[1.05]">
-                    Budgetplaner für eure Hochzeit
+                    Hochzeitskosten-Rechner für eure Hochzeit
                   </h1>
                   <p className="mt-4 max-w-[700px] text-[15px] leading-7 text-stone-600">
                     Plant euer Hochzeitsbudget klar, professionell und ohne
