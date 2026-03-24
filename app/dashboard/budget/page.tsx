@@ -1,7 +1,6 @@
 "use client";
 
 import {
-  type ElementType,
   type ReactNode,
   useEffect,
   useMemo,
@@ -11,16 +10,11 @@ import {
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { auth, db } from "../../lib/firebase";
-import { onAuthStateChanged, signOut, type User } from "firebase/auth";
+import { onAuthStateChanged, type User } from "firebase/auth";
 import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
 import {
   ArrowLeft,
   ArrowRight,
-  FolderOpen,
-  Heart,
-  LayoutDashboard,
-  LogOut,
-  Music4,
   PiggyBank,
   Users,
 } from "lucide-react";
@@ -132,35 +126,6 @@ function formatWeddingDate(dateString: string) {
     month: "2-digit",
     year: "numeric",
   }).format(date);
-}
-
-function MinimalNavItem({
-  href,
-  label,
-  icon: Icon,
-  active,
-}: {
-  href: string;
-  label: string;
-  icon: ElementType;
-  active?: boolean;
-}) {
-  return (
-    <Link
-      href={href}
-      className={`group flex items-center justify-between rounded-full px-4 py-3 text-sm transition ${
-        active
-          ? "bg-stone-900 text-white"
-          : "text-stone-600 hover:bg-stone-100 hover:text-stone-900"
-      }`}
-    >
-      <span className="flex items-center gap-3">
-        <Icon className="h-4 w-4" />
-        {label}
-      </span>
-      <ArrowRight className="h-4 w-4 opacity-0 transition group-hover:opacity-60" />
-    </Link>
-  );
 }
 
 function SectionLabel({ children }: { children: ReactNode }) {
@@ -678,12 +643,7 @@ export default function BudgetPage() {
     };
   }, [plannerState.goal, remaining, utilization]);
 
-  async function handleLogout() {
-    await signOut(auth);
-    router.push("/login");
-  }
-
-  function handleSaveGoal() {
+      function handleSaveGoal() {
     const goal = Number(goalInput || 0);
 
     if (goal < 0) {
@@ -861,84 +821,6 @@ export default function BudgetPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#f5efe8] text-stone-900">
-      <div className="mx-auto max-w-[1380px] px-4 py-4 md:px-6 md:py-6">
-        <div className="grid gap-6 xl:grid-cols-[250px_minmax(0,1fr)]">
-          <aside className="xl:sticky xl:top-6 xl:h-[calc(100vh-3rem)]">
-            <div className="flex h-full flex-col rounded-[34px] border border-stone-200 bg-[#fbf7f2] p-5">
-              <div className="flex items-center gap-3">
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-stone-900 text-white">
-                  <Heart className="h-5 w-5" />
-                </div>
-                <div>
-                  <div className="text-lg font-semibold">Marryplan</div>
-                  <div className="text-sm text-stone-500">Wedding Dashboard</div>
-                </div>
-              </div>
-
-              <div className="mt-8 space-y-2">
-                <MinimalNavItem
-                  href="/dashboard"
-                  label="Übersicht"
-                  icon={LayoutDashboard}
-                />
-                <MinimalNavItem
-                  href="/dashboard/budget"
-                  label="Budgetplaner"
-                  icon={PiggyBank}
-                  active
-                />
-                <MinimalNavItem
-                  href="/dashboard/sitzplan"
-                  label="Sitzplan"
-                  icon={Users}
-                />
-                <MinimalNavItem href="/dashboard" label="Musik" icon={Music4} />
-                <MinimalNavItem
-                  href="/dashboard"
-                  label="Dokumente"
-                  icon={FolderOpen}
-                />
-              </div>
-
-              <div className="mt-8 rounded-[28px] bg-stone-900 p-5 text-white">
-                <div className="text-[11px] uppercase tracking-[0.25em] text-white/60">
-                  Überblick
-                </div>
-                <div className="mt-4 text-3xl font-semibold tracking-tight">
-                  {countdown === null ? "Kein Datum" : `${countdown} Tage`}
-                </div>
-                <div className="mt-2 text-sm text-white/70">
-                  Hochzeit am {formatWeddingDate(dashboardProfile.weddingDate)}
-                </div>
-                <div className="mt-6 h-2 rounded-full bg-white/10">
-                  <div
-                    className="h-2 rounded-full bg-[#d9b38c]"
-                    style={{
-                      width: `${Math.max(0, Math.min(utilization, 100))}%`,
-                    }}
-                  />
-                </div>
-                <div className="mt-2 text-sm text-white/70">
-                  {utilization}% Budget genutzt
-                </div>
-              </div>
-
-              <div className="mt-auto pt-6">
-                <div className="mb-4 text-sm text-stone-500">
-                  {auth.currentUser?.email}
-                </div>
-                <button
-                  onClick={handleLogout}
-                  className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-stone-900 px-4 py-3 text-sm font-medium text-white transition hover:opacity-90"
-                >
-                  <LogOut className="h-4 w-4" />
-                  Ausloggen
-                </button>
-              </div>
-            </div>
-          </aside>
-
           <div className="space-y-6">
             <section className="overflow-hidden rounded-[40px] border border-stone-200 bg-[linear-gradient(135deg,rgba(233,154,108,.18),rgba(255,255,255,.96))] p-7 shadow-[0_18px_45px_rgba(53,35,23,.10)] md:p-10">
               <div className="grid gap-6 lg:grid-cols-[1.2fr_.8fr]">
@@ -1516,12 +1398,9 @@ export default function BudgetPage() {
                 className="inline-flex items-center gap-2 rounded-full border border-stone-300 px-4 py-3 text-sm text-stone-700 transition hover:bg-stone-100"
               >
                 <ArrowLeft className="h-4 w-4" />
-                Zur Übersicht
+                 Zur Übersicht
               </Link>
             </div>
           </div>
-        </div>
-      </div>
-    </main>
   );
 }
