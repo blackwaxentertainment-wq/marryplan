@@ -7,6 +7,17 @@ const nextConfig = {
         has: [
           {
             type: 'host',
+            value: 'www.marryplan.de',
+          },
+        ],
+        destination: '/newsletter',
+        permanent: true,
+      },
+      {
+        source: '/',
+        has: [
+          {
+            type: 'host',
             value: 'marryplan.de',
           },
         ],
