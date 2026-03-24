@@ -428,19 +428,19 @@ export default function DashboardPage() {
     <main className="min-h-screen bg-[#f5efe8] text-stone-900">
       <div className="mx-auto max-w-[1380px] px-4 py-4 md:px-6 md:py-6">
         <div className="space-y-6">
-          <header className="sticky top-4 z-40 rounded-[32px] border border-stone-200 bg-[#fbf7f2]/95 p-4 backdrop-blur md:p-5">
-            <div className="flex flex-col gap-5 xl:flex-row xl:items-center xl:justify-between">
+          <header className="sticky top-4 z-40 rounded-[28px] border border-stone-200 bg-[#fbf7f2]/95 px-5 py-4 backdrop-blur">
+            <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
               <div className="flex items-center gap-3">
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-stone-900 text-white">
+                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-stone-900 text-white">
                   <Heart className="h-5 w-5" />
                 </div>
                 <div>
-                  <div className="text-lg font-semibold">Marryplan</div>
-                  <div className="text-sm text-stone-500">Wedding Dashboard</div>
+                  <div className="text-lg font-semibold leading-none">Marryplan</div>
+                  <div className="mt-1 text-sm text-stone-500">Wedding Dashboard</div>
                 </div>
               </div>
 
-              <div className="grid gap-2 sm:grid-cols-2 xl:flex xl:flex-wrap xl:items-center">
+              <nav className="flex flex-wrap items-center gap-2">
                 <MinimalNavItem
                   href="/dashboard"
                   label="Übersicht"
@@ -467,42 +467,19 @@ export default function DashboardPage() {
                   label="Dokumente"
                   icon={FolderOpen}
                 />
-              </div>
+              </nav>
 
-              <div className="flex flex-col gap-3 xl:items-end">
-                <div className="rounded-[24px] bg-stone-900 p-4 text-white">
-                  <div className="text-[11px] uppercase tracking-[0.25em] text-white/60">
-                    Überblick
-                  </div>
-                  <div className="mt-3 text-2xl font-semibold tracking-tight">
-                    {countdown === null ? "Kein Datum" : `${countdown} Tage`}
-                  </div>
-                  <div className="mt-1 text-sm text-white/70">
-                    Hochzeit am {formatWeddingDate(profile.weddingDate)}
-                  </div>
-                  <div className="mt-4 h-2 rounded-full bg-white/10">
-                    <div
-                      className="h-2 rounded-full bg-[#d9b38c]"
-                      style={{ width: `${progress}%` }}
-                    />
-                  </div>
-                  <div className="mt-2 text-sm text-white/70">
-                    {progress}% erledigt
-                  </div>
+              <div className="flex items-center gap-3">
+                <div className="hidden text-sm text-stone-500 xl:block">
+                  {auth.currentUser?.email}
                 </div>
-
-                <div className="flex flex-wrap items-center gap-3 xl:justify-end">
-                  <div className="text-sm text-stone-500">
-                    {auth.currentUser?.email}
-                  </div>
-                  <button
-                    onClick={handleLogout}
-                    className="inline-flex items-center justify-center gap-2 rounded-full bg-stone-900 px-4 py-3 text-sm font-medium text-white transition hover:opacity-90"
-                  >
-                    <LogOut className="h-4 w-4" />
-                    Ausloggen
-                  </button>
-                </div>
+                <button
+                  onClick={handleLogout}
+                  className="inline-flex items-center justify-center gap-2 rounded-full bg-stone-900 px-4 py-3 text-sm font-medium text-white transition hover:opacity-90"
+                >
+                  <LogOut className="h-4 w-4" />
+                  Ausloggen
+                </button>
               </div>
             </div>
           </header>
@@ -561,7 +538,7 @@ export default function DashboardPage() {
                     className="h-full w-full object-cover"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/35 via-black/5 to-transparent" />
-                  <div className="absolute bottom-0 left-0 right-0 p-6 text-white md:p-8">
+                  <div className="absolute bottom-0 left-0 right-0 p-6 md:p-8 text-white">
                     <div className="text-xs uppercase tracking-[0.22em] text-white/70">
                       Premium Planning
                     </div>
@@ -573,7 +550,42 @@ export default function DashboardPage() {
               </div>
             </section>
 
-            <section className="grid items-stretch gap-6 xl:grid-cols-[0.7fr_1.3fr]">
+            <SoftBlock className="p-5 md:p-6">
+              <SectionLabel>Überblick</SectionLabel>
+
+              <div className="mt-4 grid gap-4 md:grid-cols-3">
+                <div className="rounded-[20px] bg-[#f8f3ed] p-4">
+                  <div className="text-sm text-stone-500">Countdown</div>
+                  <div className="mt-2 text-2xl font-semibold">
+                    {countdown === null ? "Kein Datum" : `${countdown} Tage`}
+                  </div>
+                  <div className="mt-1 text-sm text-stone-500">
+                    Hochzeit am {formatWeddingDate(profile.weddingDate)}
+                  </div>
+                </div>
+
+                <div className="rounded-[20px] bg-[#f8f3ed] p-4">
+                  <div className="text-sm text-stone-500">Fortschritt</div>
+                  <div className="mt-2 text-2xl font-semibold">{progress}%</div>
+                  <div className="mt-3 h-2 rounded-full bg-stone-200">
+                    <div
+                      className="h-2 rounded-full bg-stone-900"
+                      style={{ width: `${progress}%` }}
+                    />
+                  </div>
+                </div>
+
+                <div className="rounded-[20px] bg-[#f8f3ed] p-4">
+                  <div className="text-sm text-stone-500">Offene Aufgaben</div>
+                  <div className="mt-2 text-2xl font-semibold">{openTodos.length}</div>
+                  <div className="mt-1 text-sm text-stone-500">
+                    {openTodos[0]?.text || "Alles Wichtige erledigt"}
+                  </div>
+                </div>
+              </div>
+            </SoftBlock>
+
+            <section className="grid gap-6 xl:grid-cols-[0.7fr_1.3fr] items-stretch">
               <SoftBlock className="h-full p-5 md:p-6">
                 <SectionLabel>Planungsstand</SectionLabel>
 
@@ -744,8 +756,8 @@ export default function DashboardPage() {
               </SoftBlock>
             </section>
 
-            <section className="grid items-stretch gap-6 lg:grid-cols-[0.8fr_0.8fr_1.4fr]">
-              <SoftBlock className="h-full p-7">
+            <section className="grid gap-6 lg:grid-cols-[0.8fr_0.8fr_1.4fr] items-stretch">
+              <SoftBlock className="p-7 h-full">
                 <div className="flex items-center gap-3">
                   <div className="rounded-2xl bg-stone-100 p-3 text-stone-800">
                     <PiggyBank className="h-5 w-5" />
@@ -766,7 +778,7 @@ export default function DashboardPage() {
                 </Link>
               </SoftBlock>
 
-              <SoftBlock className="h-full p-7">
+              <SoftBlock className="p-7 h-full">
                 <div className="flex items-center gap-3">
                   <div className="rounded-2xl bg-stone-100 p-3 text-stone-800">
                     <Users className="h-5 w-5" />
@@ -787,7 +799,7 @@ export default function DashboardPage() {
                 </Link>
               </SoftBlock>
 
-              <SoftBlock className="h-full p-7">
+              <SoftBlock className="p-7 h-full">
                 <div className="flex items-center gap-3">
                   <div className="rounded-2xl bg-stone-100 p-3 text-stone-800">
                     <FileText className="h-5 w-5" />
