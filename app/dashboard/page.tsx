@@ -10,7 +10,7 @@ import {
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { auth, db } from "../lib/firebase";
-import { onAuthStateChanged, signOut } from "firebase/auth";
+import { onAuthStateChanged, signOut, type User } from "firebase/auth";
 import {
   doc,
   getDoc,
@@ -23,7 +23,6 @@ import {
   query,
   orderBy,
 } from "firebase/firestore";
-
 import { storage } from "../lib/firebase";
 import {
   ref,
@@ -31,7 +30,6 @@ import {
   getDownloadURL,
   deleteObject,
 } from "firebase/storage";
-
 import {
   ArrowRight,
   CalendarDays,
@@ -134,7 +132,7 @@ function MinimalNavItem({
       }`}
     >
       <span className="flex items-center gap-3">
-        <Icon className="h-4 w-4" />
+        <Icon className="h-4 w-4 shrink-0" />
         {label}
       </span>
       <ArrowRight className="h-4 w-4 opacity-0 transition group-hover:opacity-60" />
@@ -142,7 +140,7 @@ function MinimalNavItem({
   );
 }
 
-function SectionLabel({ children }: { children: React.ReactNode }) {
+function SectionLabel({ children }: { children: ReactNode }) {
   return (
     <div className="text-[11px] font-medium uppercase tracking-[0.28em] text-stone-500">
       {children}
@@ -154,7 +152,7 @@ function SoftBlock({
   children,
   className = "",
 }: {
-  children: React.ReactNode;
+  children: ReactNode;
   className?: string;
 }) {
   return (
@@ -167,9 +165,6 @@ function SoftBlock({
 export default function DashboardPage() {
   const router = useRouter();
 
-  const [hideSidebar, setHideSidebar] = useState(false);
-  const [isSidebarHovered, setIsSidebarHovered] = useState(false);
-  const [sidebarCloseTimeout, setSidebarCloseTimeout] = useState<NodeJS.Timeout | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
   const [profile, setProfile] = useState<ProfileType>({
     partnerOne: "",
@@ -193,7 +188,7 @@ export default function DashboardPage() {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadMessage, setUploadMessage] = useState("");
 
-  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [initialDataLoaded, setInitialDataLoaded] = useState(false);
 
   const countdown = useMemo(() => daysUntil(profile.weddingDate), [profile.weddingDate]);
@@ -205,6 +200,7 @@ export default function DashboardPage() {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (!user || !user.emailVerified) {
         setCurrentUser(null);
+        setAuthLoading(false);
         router.push("/login");
         return;
       }
@@ -408,21 +404,6 @@ export default function DashboardPage() {
     return () => clearTimeout(timeout);
   }, [profile, todos, music, authLoading, currentUser, initialDataLoaded]);
 
-useEffect(() => {
-  const handleMouseMove = (e: MouseEvent) => {
-    if (e.clientX <= 80) {
-      if (sidebarCloseTimeout) {
-        clearTimeout(sidebarCloseTimeout);
-        setSidebarCloseTimeout(null);
-      }
-      setHideSidebar(false);
-    }
-  };
-
-  window.addEventListener("mousemove", handleMouseMove);
-  return () => window.removeEventListener("mousemove", handleMouseMove);
-}, [sidebarCloseTimeout]);
-
   useEffect(() => {
     if (!saveMessage) return;
 
@@ -445,93 +426,86 @@ useEffect(() => {
 
   return (
     <main className="min-h-screen bg-[#f5efe8] text-stone-900">
-  <div className="mx-auto max-w-[1380px] px-4 py-4 md:px-6 md:py-6">
-    <div
-  className={`grid gap-6 transition-all duration-300 ${
-    hideSidebar
-      ? "xl:grid-cols-[0px_minmax(0,1fr)]"
-      : "xl:grid-cols-[250px_minmax(0,1fr)]"
-  }`}
->
-  <div
-    className="fixed left-0 top-0 z-50 h-full w-16"
-    onMouseEnter={() => setHideSidebar(false)}
-  />
-
-<aside
-  onMouseEnter={() => {
-    if (sidebarCloseTimeout) {
-      clearTimeout(sidebarCloseTimeout);
-      setSidebarCloseTimeout(null);
-    }
-    setIsSidebarHovered(true);
-    setHideSidebar(false);
-  }}
-  onMouseLeave={() => {
-    setIsSidebarHovered(false);
-
-    const timeout = setTimeout(() => {
-      setHideSidebar(true);
-    }, 500);
-
-    setSidebarCloseTimeout(timeout);
-  }}
-  className={`xl:sticky xl:top-6 xl:h-[calc(100vh-3rem)] overflow-hidden transition-all duration-300 ${
-    hideSidebar
-      ? "pointer-events-none opacity-0 xl:w-0"
-      : "opacity-100 xl:w-[250px]"
-  }`}
->
-        <div className="flex h-full flex-col rounded-[34px] border border-stone-200 bg-[#fbf7f2] p-5">
-          <div className="flex items-center gap-3">
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-stone-900 text-white">
-              <Heart className="h-5 w-5" />
-            </div>
-            <div>
-              <div className="text-lg font-semibold">Marryplan</div>
-              <div className="text-sm text-stone-500">Wedding Dashboard</div>
-            </div>
-          </div>
-
-              <div className="mt-8 space-y-2">
-                <MinimalNavItem href="/dashboard" label="Übersicht" icon={LayoutDashboard} active />
-                <MinimalNavItem href="/dashboard/budget" label="Budgetplaner" icon={PiggyBank} />
-                <MinimalNavItem href="/dashboard/sitzplan" label="Sitzplan" icon={Users} />
-                <MinimalNavItem href="/dashboard" label="Musik" icon={Music4} />
-                <MinimalNavItem href="/dashboard" label="Dokumente" icon={FolderOpen} />
+      <div className="mx-auto max-w-[1380px] px-4 py-4 md:px-6 md:py-6">
+        <div className="space-y-6">
+          <header className="sticky top-4 z-40 rounded-[32px] border border-stone-200 bg-[#fbf7f2]/95 p-4 backdrop-blur md:p-5">
+            <div className="flex flex-col gap-5 xl:flex-row xl:items-center xl:justify-between">
+              <div className="flex items-center gap-3">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-stone-900 text-white">
+                  <Heart className="h-5 w-5" />
+                </div>
+                <div>
+                  <div className="text-lg font-semibold">Marryplan</div>
+                  <div className="text-sm text-stone-500">Wedding Dashboard</div>
+                </div>
               </div>
 
-              <div className="mt-8 rounded-[28px] bg-stone-900 p-5 text-white">
-                <div className="text-[11px] uppercase tracking-[0.25em] text-white/60">
-                  Überblick
-                </div>
-                <div className="mt-4 text-3xl font-semibold tracking-tight">
-                  {countdown === null ? "Kein Datum" : `${countdown} Tage`}
-                </div>
-                <div className="mt-2 text-sm text-white/70">
-                  Hochzeit am {formatWeddingDate(profile.weddingDate)}
-                </div>
-                <div className="mt-6 h-2 rounded-full bg-white/10">
-                  <div
-                    className="h-2 rounded-full bg-[#d9b38c]"
-                    style={{ width: `${progress}%` }}
-                  />
-                </div>
-                <div className="mt-2 text-sm text-white/70">{progress}% erledigt</div>
+              <div className="grid gap-2 sm:grid-cols-2 xl:flex xl:flex-wrap xl:items-center">
+                <MinimalNavItem
+                  href="/dashboard"
+                  label="Übersicht"
+                  icon={LayoutDashboard}
+                  active
+                />
+                <MinimalNavItem
+                  href="/dashboard/budget"
+                  label="Budgetplaner"
+                  icon={PiggyBank}
+                />
+                <MinimalNavItem
+                  href="/dashboard/sitzplan"
+                  label="Sitzplan"
+                  icon={Users}
+                />
+                <MinimalNavItem
+                  href="/dashboard"
+                  label="Musik"
+                  icon={Music4}
+                />
+                <MinimalNavItem
+                  href="/dashboard"
+                  label="Dokumente"
+                  icon={FolderOpen}
+                />
               </div>
 
-              <div className="mt-auto pt-6">
-                <div className="mb-4 text-sm text-stone-500">{auth.currentUser?.email}</div>
-                <button
-                  onClick={handleLogout}
-                  className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-stone-900 px-4 py-3 text-sm font-medium text-white transition hover:opacity-90"
-                >
-                  <LogOut className="h-4 w-4" />
-                  Ausloggen
-                </button>
+              <div className="flex flex-col gap-3 xl:items-end">
+                <div className="rounded-[24px] bg-stone-900 p-4 text-white">
+                  <div className="text-[11px] uppercase tracking-[0.25em] text-white/60">
+                    Überblick
+                  </div>
+                  <div className="mt-3 text-2xl font-semibold tracking-tight">
+                    {countdown === null ? "Kein Datum" : `${countdown} Tage`}
+                  </div>
+                  <div className="mt-1 text-sm text-white/70">
+                    Hochzeit am {formatWeddingDate(profile.weddingDate)}
+                  </div>
+                  <div className="mt-4 h-2 rounded-full bg-white/10">
+                    <div
+                      className="h-2 rounded-full bg-[#d9b38c]"
+                      style={{ width: `${progress}%` }}
+                    />
+                  </div>
+                  <div className="mt-2 text-sm text-white/70">
+                    {progress}% erledigt
+                  </div>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-3 xl:justify-end">
+                  <div className="text-sm text-stone-500">
+                    {auth.currentUser?.email}
+                  </div>
+                  <button
+                    onClick={handleLogout}
+                    className="inline-flex items-center justify-center gap-2 rounded-full bg-stone-900 px-4 py-3 text-sm font-medium text-white transition hover:opacity-90"
+                  >
+                    <LogOut className="h-4 w-4" />
+                    Ausloggen
+                  </button>
+                </div>
               </div>
             </div>
-          </aside>
+          </header>
 
           <div className="space-y-6">
             <section className="overflow-hidden rounded-[40px] border border-stone-200 bg-white">
@@ -561,11 +535,15 @@ useEffect(() => {
                   <div className="mt-10 grid gap-6 md:grid-cols-3">
                     <div>
                       <div className="text-sm text-stone-500">Datum</div>
-                      <div className="mt-1 text-xl font-medium">{formatWeddingDate(profile.weddingDate)}</div>
+                      <div className="mt-1 text-xl font-medium">
+                        {formatWeddingDate(profile.weddingDate)}
+                      </div>
                     </div>
                     <div>
                       <div className="text-sm text-stone-500">Gäste</div>
-                      <div className="mt-1 text-xl font-medium">{profile.guestCount || "noch offen"}</div>
+                      <div className="mt-1 text-xl font-medium">
+                        {profile.guestCount || "noch offen"}
+                      </div>
                     </div>
                     <div>
                       <div className="text-sm text-stone-500">Nächster Schritt</div>
@@ -583,7 +561,7 @@ useEffect(() => {
                     className="h-full w-full object-cover"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/35 via-black/5 to-transparent" />
-                  <div className="absolute bottom-0 left-0 right-0 p-6 md:p-8 text-white">
+                  <div className="absolute bottom-0 left-0 right-0 p-6 text-white md:p-8">
                     <div className="text-xs uppercase tracking-[0.22em] text-white/70">
                       Premium Planning
                     </div>
@@ -595,7 +573,7 @@ useEffect(() => {
               </div>
             </section>
 
-            <section className="grid gap-6 xl:grid-cols-[0.7fr_1.3fr] items-stretch">
+            <section className="grid items-stretch gap-6 xl:grid-cols-[0.7fr_1.3fr]">
               <SoftBlock className="h-full p-5 md:p-6">
                 <SectionLabel>Planungsstand</SectionLabel>
 
@@ -766,8 +744,8 @@ useEffect(() => {
               </SoftBlock>
             </section>
 
-            <section className="grid gap-6 lg:grid-cols-[0.8fr_0.8fr_1.4fr] items-stretch">
-              <SoftBlock className="p-7 h-full">
+            <section className="grid items-stretch gap-6 lg:grid-cols-[0.8fr_0.8fr_1.4fr]">
+              <SoftBlock className="h-full p-7">
                 <div className="flex items-center gap-3">
                   <div className="rounded-2xl bg-stone-100 p-3 text-stone-800">
                     <PiggyBank className="h-5 w-5" />
@@ -788,7 +766,7 @@ useEffect(() => {
                 </Link>
               </SoftBlock>
 
-              <SoftBlock className="p-7 h-full">
+              <SoftBlock className="h-full p-7">
                 <div className="flex items-center gap-3">
                   <div className="rounded-2xl bg-stone-100 p-3 text-stone-800">
                     <Users className="h-5 w-5" />
@@ -809,7 +787,7 @@ useEffect(() => {
                 </Link>
               </SoftBlock>
 
-              <SoftBlock className="p-7 h-full">
+              <SoftBlock className="h-full p-7">
                 <div className="flex items-center gap-3">
                   <div className="rounded-2xl bg-stone-100 p-3 text-stone-800">
                     <FileText className="h-5 w-5" />
