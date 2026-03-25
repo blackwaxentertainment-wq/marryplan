@@ -374,7 +374,7 @@ export default function BudgetPage() {
 
     const limited = categoryTotals.slice(0, 6);
     const shownTotal = limited.reduce((s, e) => s + e.total, 0);
-    const chartData = [...limited];
+    const chartData: { category: string; total: number }[] = [...limited];
     if (planned - shownTotal > 0) chartData.push({ category: "Weitere", total: planned - shownTotal });
 
     const cx = canvas.width / 2, cy = canvas.height / 2;
@@ -928,7 +928,7 @@ export default function BudgetPage() {
               {(() => {
                 const limited = categoryTotals.slice(0, 6);
                 const shownTotal = limited.reduce((s, e) => s + e.total, 0);
-                const chartData = [...limited];
+                const chartData: { category: string; total: number }[] = [...limited];
                 if (planned - shownTotal > 0) chartData.push({ category: "Weitere", total: planned - shownTotal });
                 return chartData.map((entry, i) => (
                   <div
