@@ -218,7 +218,7 @@ export default function DokumentePage() {
           {/* Textseite */}
           <div className="flex flex-col justify-between bg-gradient-to-br from-[#fdfaf6] via-white to-[#f9f5f0] p-8 md:p-12 xl:p-14">
             <div>
-              <SectionLabel>Wedding Hub · Tool</SectionLabel>
+              <SectionLabel>MarryPlan · Tool</SectionLabel>
               <h1 className="mt-6 max-w-lg text-5xl font-semibold leading-[1.06] tracking-[-0.045em] text-stone-900 md:text-6xl">
                 Eure
                 <br />
