@@ -35,14 +35,11 @@ import {
   CalendarDays,
   CheckCircle2,
   FileText,
-  FolderOpen,
-  Heart,
-  LayoutDashboard,
-  LogOut,
-  Music4,
   PiggyBank,
   Users,
 } from "lucide-react";
+
+// ─── Typen ────────────────────────────────────────────────────────────────────
 
 type ProfileType = {
   partnerOne: string;
@@ -74,6 +71,8 @@ type DocumentType = {
   contentType: string;
 };
 
+// ─── Konstanten ───────────────────────────────────────────────────────────────
+
 const starterTodos: TodoType[] = [
   { id: 1, text: "Hochzeitsprofil anlegen", done: true },
   { id: 2, text: "Budgetrahmen festlegen", done: false },
@@ -81,6 +80,8 @@ const starterTodos: TodoType[] = [
   { id: 4, text: "Musikwünsche vorbereiten", done: false },
   { id: 5, text: "wichtige Dokumente hochladen", done: false },
 ];
+
+// ─── Hilfsfunktionen ──────────────────────────────────────────────────────────
 
 function daysUntil(dateString: string) {
   if (!dateString) return null;
@@ -95,7 +96,6 @@ function formatWeddingDate(dateString: string) {
   if (!dateString) return "noch offen";
   const date = new Date(dateString);
   if (Number.isNaN(date.getTime())) return "noch offen";
-
   return new Intl.DateTimeFormat("de-DE", {
     day: "2-digit",
     month: "2-digit",
@@ -111,44 +111,17 @@ function formatFileSize(bytes: number) {
   return `${kb.toFixed(0)} KB`;
 }
 
-function MinimalNavItem({
-  href,
-  label,
-  icon: Icon,
-  active,
-}: {
-  href: string;
-  label: string;
-  icon: ElementType;
-  active?: boolean;
-}) {
-  return (
-    <Link
-      href={href}
-      className={`group flex items-center justify-between rounded-full px-4 py-3 text-sm transition ${
-        active
-          ? "bg-stone-900 text-white"
-          : "text-stone-600 hover:bg-stone-100 hover:text-stone-900"
-      }`}
-    >
-      <span className="flex items-center gap-3">
-        <Icon className="h-4 w-4 shrink-0" />
-        {label}
-      </span>
-      <ArrowRight className="h-4 w-4 opacity-0 transition group-hover:opacity-60" />
-    </Link>
-  );
-}
+// ─── Design-Bausteine ─────────────────────────────────────────────────────────
 
 function SectionLabel({ children }: { children: ReactNode }) {
   return (
-    <div className="text-[11px] font-medium uppercase tracking-[0.28em] text-stone-500">
+    <div className="text-[10px] font-semibold uppercase tracking-[0.32em] text-stone-400">
       {children}
     </div>
   );
 }
 
-function SoftBlock({
+function Card({
   children,
   className = "",
 }: {
@@ -156,11 +129,63 @@ function SoftBlock({
   className?: string;
 }) {
   return (
-    <div className={`rounded-[32px] border border-stone-200 bg-white ${className}`}>
+    <div
+      className={`rounded-3xl border border-stone-100 bg-white shadow-[0_2px_16px_0_rgba(0,0,0,0.05)] ${className}`}
+    >
       {children}
     </div>
   );
 }
+
+function StatChip({
+  label,
+  value,
+  sub,
+  icon: Icon,
+}: {
+  label: string;
+  value: string;
+  sub?: string;
+  icon?: ElementType;
+}) {
+  return (
+    <div className="group relative overflow-hidden rounded-2xl border border-stone-100 bg-gradient-to-b from-white to-stone-50 p-5 shadow-sm transition hover:shadow-md">
+      <div className="flex items-center justify-between">
+        <span className="text-[10px] font-semibold uppercase tracking-widest text-stone-400">
+          {label}
+        </span>
+        {Icon && (
+          <span className="flex h-7 w-7 items-center justify-center rounded-full bg-stone-100 text-stone-500">
+            <Icon className="h-3.5 w-3.5" />
+          </span>
+        )}
+      </div>
+      <div className="mt-3 text-3xl font-semibold tracking-tight text-stone-900">
+        {value}
+      </div>
+      {sub && <div className="mt-1 text-xs text-stone-400">{sub}</div>}
+    </div>
+  );
+}
+
+function Field({ label, children }: { label: string; children: ReactNode }) {
+  return (
+    <div>
+      <label className="mb-1.5 block text-[10px] font-semibold uppercase tracking-wider text-stone-400">
+        {label}
+      </label>
+      {children}
+    </div>
+  );
+}
+
+const inputCls =
+  "w-full rounded-xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm text-stone-900 placeholder:text-stone-300 transition focus:border-stone-400 focus:bg-white focus:outline-none";
+
+const textareaCls =
+  "w-full resize-none rounded-xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm text-stone-900 placeholder:text-stone-300 transition focus:border-stone-400 focus:bg-white focus:outline-none";
+
+// ─── Hauptkomponente ───────────────────────────────────────────────────────────
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -187,14 +212,15 @@ export default function DashboardPage() {
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadMessage, setUploadMessage] = useState("");
-
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [initialDataLoaded, setInitialDataLoaded] = useState(false);
 
   const countdown = useMemo(() => daysUntil(profile.weddingDate), [profile.weddingDate]);
-  const completedTodos = todos.filter((item) => item.done).length;
-  const openTodos = todos.filter((item) => !item.done);
+  const completedTodos = todos.filter((t) => t.done).length;
+  const openTodos = todos.filter((t) => !t.done);
   const progress = todos.length ? Math.round((completedTodos / todos.length) * 100) : 0;
+
+  // ─── Auth & Daten laden ───────────────────────────────────────────────────
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -204,108 +230,105 @@ export default function DashboardPage() {
         router.push("/login");
         return;
       }
-
       setCurrentUser(user);
-
       try {
         const snapshot = await getDoc(doc(db, "users", user.uid));
-
         if (snapshot.exists()) {
           const data = snapshot.data();
-
-          if (data.profile) {
+          if (data.profile)
             setProfile({
-              partnerOne: data.profile.partnerOne || "",
-              partnerTwo: data.profile.partnerTwo || "",
-              weddingDate: data.profile.weddingDate || "",
-              guestCount: data.profile.guestCount || "",
-              location: data.profile.location || "",
-              notes: data.profile.notes || "",
+              partnerOne: "",
+              partnerTwo: "",
+              weddingDate: "",
+              guestCount: "",
+              location: "",
+              notes: "",
+              ...data.profile,
             });
-          }
-
-          if (data.todos) {
-            setTodos(data.todos);
-          }
-
-          if (data.music) {
-            setMusic({
-              mustPlay: data.music.mustPlay || "",
-              noGo: data.music.noGo || "",
-              spotify: data.music.spotify || "",
-            });
-          }
-
-          const docsQuery = query(
-            collection(db, "users", user.uid, "documents"),
-            orderBy("createdAt", "desc")
+          if (data.todos) setTodos(data.todos);
+          if (data.music)
+            setMusic({ mustPlay: "", noGo: "", spotify: "", ...data.music });
+          const docsSnap = await getDocs(
+            query(
+              collection(db, "users", user.uid, "documents"),
+              orderBy("createdAt", "desc")
+            )
           );
-
-          const docsSnapshot = await getDocs(docsQuery);
-
           setDocuments(
-            docsSnapshot.docs.map((docItem) => ({
-              id: docItem.id,
-              ...(docItem.data() as Omit<DocumentType, "id">),
+            docsSnap.docs.map((d) => ({
+              id: d.id,
+              ...(d.data() as Omit<DocumentType, "id">),
             }))
           );
         }
-      } catch (error) {
-        console.error("Fehler beim Laden des Dashboards:", error);
+      } catch (err) {
+        console.error("Fehler beim Laden:", err);
       } finally {
         setAuthLoading(false);
         setInitialDataLoaded(true);
       }
     });
-
     return () => unsubscribe();
   }, [router]);
 
-  const handleLogout = async () => {
-    await signOut(auth);
-    router.push("/login");
-  };
+  // ─── Auto-Save ────────────────────────────────────────────────────────────
 
-  const handleFilesSelected = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(event.target.files || []);
-    setSelectedFiles(files);
+  useEffect(() => {
+    if (authLoading || !initialDataLoaded || !currentUser) return;
+    const t = setTimeout(async () => {
+      try {
+        setSaveMessage("Speichert…");
+        await setDoc(
+          doc(db, "users", currentUser.uid),
+          { profile, todos, music, updatedAt: serverTimestamp() },
+          { merge: true }
+        );
+        setSaveMessage("Gespeichert");
+      } catch {
+        setSaveMessage("Speichern fehlgeschlagen");
+      }
+    }, 800);
+    return () => clearTimeout(t);
+  }, [profile, todos, music, authLoading, currentUser, initialDataLoaded]);
+
+  useEffect(() => {
+    if (!saveMessage) return;
+    const t = setTimeout(() => setSaveMessage(""), 2500);
+    return () => clearTimeout(t);
+  }, [saveMessage]);
+
+  // ─── Dokument-Handler ─────────────────────────────────────────────────────
+
+  const handleFilesSelected = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSelectedFiles(Array.from(e.target.files || []));
     setUploadMessage("");
   };
 
   const handleUploadDocuments = async () => {
     if (!currentUser || selectedFiles.length === 0) return;
-
     try {
       setUploading(true);
       setUploadProgress(0);
-      setUploadMessage("");
-
-      let uploadedCount = 0;
-      const totalFiles = selectedFiles.length;
-
+      let uploaded = 0;
       for (const file of selectedFiles) {
         const filePath = `documents/${currentUser.uid}/${Date.now()}-${file.name}`;
         const storageRef = ref(storage, filePath);
-
         await new Promise<void>((resolve, reject) => {
-          const uploadTask = uploadBytesResumable(storageRef, file);
-
-          uploadTask.on(
+          const task = uploadBytesResumable(storageRef, file);
+          task.on(
             "state_changed",
-            (snapshot) => {
-              const fileProgress =
-                (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-
-              const overallProgress =
-                ((uploadedCount + fileProgress / 100) / totalFiles) * 100;
-
-              setUploadProgress(Math.round(overallProgress));
-            },
-            (error) => reject(error),
+            (snap) =>
+              setUploadProgress(
+                Math.round(
+                  ((uploaded + snap.bytesTransferred / snap.totalBytes) /
+                    selectedFiles.length) *
+                    100
+                )
+              ),
+            reject,
             async () => {
               try {
-                const url = await getDownloadURL(uploadTask.snapshot.ref);
-
+                const url = await getDownloadURL(task.snapshot.ref);
                 const docRef = await addDoc(
                   collection(db, "users", currentUser.uid, "documents"),
                   {
@@ -317,8 +340,7 @@ export default function DashboardPage() {
                     createdAt: serverTimestamp(),
                   }
                 );
-
-                setDocuments((current) => [
+                setDocuments((c) => [
                   {
                     id: docRef.id,
                     name: file.name,
@@ -327,10 +349,9 @@ export default function DashboardPage() {
                     size: file.size,
                     contentType: file.type || "application/octet-stream",
                   },
-                  ...current,
+                  ...c,
                 ]);
-
-                uploadedCount += 1;
+                uploaded++;
                 resolve();
               } catch (err) {
                 reject(err);
@@ -339,612 +360,504 @@ export default function DashboardPage() {
           );
         });
       }
-
-      setUploadMessage("Dokument(e) erfolgreich hochgeladen.");
+      setUploadMessage("Erfolgreich hochgeladen.");
       setSelectedFiles([]);
       setUploadProgress(100);
-    } catch (error) {
-      console.error("Fehler beim Upload:", error);
+    } catch {
       setUploadMessage("Upload fehlgeschlagen.");
     } finally {
       setUploading(false);
-
-      setTimeout(() => {
-        setUploadProgress(0);
-      }, 700);
+      setTimeout(() => setUploadProgress(0), 700);
     }
   };
 
-  const handleDeleteDocument = async (documentItem: DocumentType) => {
-    if (!currentUser) return;
-
-    const ok = window.confirm("Datei wirklich löschen?");
-    if (!ok) return;
-
+  const handleDeleteDocument = async (item: DocumentType) => {
+    if (!currentUser || !window.confirm("Datei wirklich löschen?")) return;
     try {
-      await deleteObject(ref(storage, documentItem.path));
-      await deleteDoc(doc(db, "users", currentUser.uid, "documents", documentItem.id));
-
-      setDocuments((current) =>
-        current.filter((item) => item.id !== documentItem.id)
+      await deleteObject(ref(storage, item.path));
+      await deleteDoc(
+        doc(db, "users", currentUser.uid, "documents", item.id)
       );
-    } catch (error) {
-      console.error("Fehler beim Löschen:", error);
+      setDocuments((c) => c.filter((d) => d.id !== item.id));
+    } catch {
       setUploadMessage("Löschen fehlgeschlagen.");
     }
   };
 
-  useEffect(() => {
-    if (authLoading) return;
-    if (!initialDataLoaded) return;
-    if (!currentUser) return;
-
-    const timeout = setTimeout(async () => {
-      try {
-        setSaveMessage("Speichert...");
-
-        await setDoc(
-          doc(db, "users", currentUser.uid),
-          {
-            profile,
-            todos,
-            music,
-            updatedAt: serverTimestamp(),
-          },
-          { merge: true }
-        );
-
-        setSaveMessage("Automatisch gespeichert");
-      } catch (error) {
-        console.error("Auto Save Fehler:", error);
-        setSaveMessage("Automatisches Speichern fehlgeschlagen");
-      }
-    }, 800);
-
-    return () => clearTimeout(timeout);
-  }, [profile, todos, music, authLoading, currentUser, initialDataLoaded]);
-
-  useEffect(() => {
-    if (!saveMessage) return;
-
-    const timeout = setTimeout(() => {
-      setSaveMessage("");
-    }, 2500);
-
-    return () => clearTimeout(timeout);
-  }, [saveMessage]);
+  // ─── Lade-Zustand ─────────────────────────────────────────────────────────
 
   if (authLoading) {
     return (
-      <main className="min-h-screen bg-[#f5efe8] p-6 text-stone-900">
-        <div className="mx-auto max-w-[1380px] rounded-[32px] border border-stone-200 bg-white p-6">
-          Dashboard wird geladen...
-        </div>
+      <main className="flex min-h-screen items-center justify-center bg-[#f7f4f0]">
+        <div className="text-sm text-stone-400">Wird geladen…</div>
       </main>
     );
   }
 
+  // ─── Render ───────────────────────────────────────────────────────────────
+
   return (
-          <div className="space-y-6">
-            <section className="overflow-hidden rounded-[40px] border border-stone-200 bg-white">
-              <div className="grid gap-0 lg:grid-cols-[1.05fr_0.95fr]">
-                <div className="flex flex-col justify-between p-7 md:p-10 xl:p-12">
-                  <div className="flex items-start justify-between gap-4">
-                    <div>
-                      <SectionLabel>Wedding Dashboard</SectionLabel>
+    <div className="space-y-5">
 
-                      <h1 className="mt-5 max-w-xl text-4xl font-semibold leading-[1.05] tracking-[-0.04em] md:text-6xl">
-                        {profile.partnerOne || "Eure Hochzeit"}
-                        {profile.partnerTwo ? ` & ${profile.partnerTwo}` : ""}
-                      </h1>
+      {/* ── HERO ─────────────────────────────────────────────────────────── */}
+      <section className="overflow-hidden rounded-3xl border border-stone-100 bg-white shadow-[0_2px_24px_0_rgba(0,0,0,0.06)]">
+        <div className="grid lg:grid-cols-[1fr_480px]">
 
-                      <p className="mt-5 max-w-lg text-base leading-8 text-stone-600 md:text-lg">
-                        Behalte alle wichtigen Details eurer Hochzeit entspannt im Blick. ❤️
-                      </p>
-                    </div>
+          {/* Textseite */}
+          <div className="flex flex-col justify-between bg-gradient-to-br from-[#fdfaf6] via-white to-[#f9f5f0] p-8 md:p-12 xl:p-14">
+            <div>
+              <SectionLabel>Wedding Dashboard</SectionLabel>
+              <h1 className="mt-6 max-w-lg text-5xl font-semibold leading-[1.06] tracking-[-0.045em] text-stone-900 md:text-6xl xl:text-7xl">
+                {profile.partnerOne || "Eure"}
+                {profile.partnerTwo ? (
+                  <>
+                    <br />
+                    <span className="text-[#b08d6a]">&amp; {profile.partnerTwo}</span>
+                  </>
+                ) : (
+                  <span className="text-[#b08d6a]"> Hochzeit</span>
+                )}
+              </h1>
+              <p className="mt-5 max-w-sm text-[15px] leading-7 text-stone-400">
+                Alle Details auf einen Blick — entspannt und klar organisiert.
+              </p>
+            </div>
+
+            {/* Quickstats */}
+            <div className="mt-10 flex flex-wrap gap-8 border-t border-stone-100 pt-8">
+              {[
+                { label: "Datum", value: formatWeddingDate(profile.weddingDate) },
+                { label: "Gäste", value: profile.guestCount || "—" },
+                {
+                  label: "Nächster Schritt",
+                  value: openTodos[0]?.text || "Alles erledigt",
+                },
+              ].map((s) => (
+                <div key={s.label}>
+                  <div className="text-[10px] font-semibold uppercase tracking-widest text-stone-400">
+                    {s.label}
                   </div>
-
-                  {saveMessage && (
-                    <div className="mt-4 text-sm text-stone-600">
-                      {saveMessage}
-                    </div>
-                  )}
-
-                  <div className="mt-10 grid gap-6 md:grid-cols-3">
-                    <div>
-                      <div className="text-sm text-stone-500">Datum</div>
-                      <div className="mt-1 text-xl font-medium">
-                        {formatWeddingDate(profile.weddingDate)}
-                      </div>
-                    </div>
-                    <div>
-                      <div className="text-sm text-stone-500">Gäste</div>
-                      <div className="mt-1 text-xl font-medium">
-                        {profile.guestCount || "noch offen"}
-                      </div>
-                    </div>
-                    <div>
-                      <div className="text-sm text-stone-500">Nächster Schritt</div>
-                      <div className="mt-1 text-xl font-medium">
-                        {openTodos[0]?.text || "Alles Wichtige erledigt"}
-                      </div>
-                    </div>
+                  <div className="mt-1.5 text-base font-semibold text-stone-800">
+                    {s.value}
                   </div>
                 </div>
+              ))}
+            </div>
 
-                <div className="relative min-h-[420px] lg:min-h-full">
-                  <img
-                    src="https://images.unsplash.com/photo-1519225421980-715cb0215aed?auto=format&fit=crop&w=1400&q=80"
-                    alt="Wedding inspiration"
-                    className="h-full w-full object-cover"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/35 via-black/5 to-transparent" />
-                  <div className="absolute bottom-0 left-0 right-0 p-6 md:p-8 text-white">
-                    <div className="text-xs uppercase tracking-[0.22em] text-white/70">
-                      Premium Planning
-                    </div>
-                    <div className="mt-2 text-2xl font-semibold tracking-tight">
-                      Klarer Überblick statt Karten-Chaos
-                    </div>
-                  </div>
-                </div>
+            {saveMessage && (
+              <div className="mt-5 text-xs text-stone-400">{saveMessage}</div>
+            )}
+          </div>
+
+          {/* Bildseite */}
+          <div className="relative min-h-[380px] lg:min-h-full">
+            <img
+              src="https://images.unsplash.com/photo-1519225421980-715cb0215aed?auto=format&fit=crop&w=1400&q=80"
+              alt="Wedding inspiration"
+              className="absolute inset-0 h-full w-full object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/10 to-transparent" />
+            <div className="absolute bottom-0 left-0 right-0 p-7 text-white">
+              <div className="text-[10px] font-semibold uppercase tracking-[0.3em] text-white/50">
+                Premium Planning
               </div>
-            </section>
-
-            <SoftBlock className="p-5 md:p-6">
-              <SectionLabel>Überblick</SectionLabel>
-
-              <div className="mt-4 grid gap-4 md:grid-cols-3">
-                <div className="rounded-[20px] bg-[#f8f3ed] p-4">
-                  <div className="text-sm text-stone-500">Countdown</div>
-                  <div className="mt-2 text-2xl font-semibold">
-                    {countdown === null ? "Kein Datum" : `${countdown} Tage`}
-                  </div>
-                  <div className="mt-1 text-sm text-stone-500">
-                    Hochzeit am {formatWeddingDate(profile.weddingDate)}
-                  </div>
-                </div>
-
-                <div className="rounded-[20px] bg-[#f8f3ed] p-4">
-                  <div className="text-sm text-stone-500">Fortschritt</div>
-                  <div className="mt-2 text-2xl font-semibold">{progress}%</div>
-                  <div className="mt-3 h-2 rounded-full bg-stone-200">
-                    <div
-                      className="h-2 rounded-full bg-stone-900"
-                      style={{ width: `${progress}%` }}
-                    />
-                  </div>
-                </div>
-
-                <div className="rounded-[20px] bg-[#f8f3ed] p-4">
-                  <div className="text-sm text-stone-500">Offene Aufgaben</div>
-                  <div className="mt-2 text-2xl font-semibold">{openTodos.length}</div>
-                  <div className="mt-1 text-sm text-stone-500">
-                    {openTodos[0]?.text || "Alles Wichtige erledigt"}
-                  </div>
-                </div>
+              <div className="mt-2 text-xl font-semibold leading-snug tracking-tight">
+                Klarer Überblick statt Chaos
               </div>
-            </SoftBlock>
+            </div>
+          </div>
+        </div>
+      </section>
 
-            <section className="grid gap-6 xl:grid-cols-[0.7fr_1.3fr] items-stretch">
-              <SoftBlock className="h-full p-5 md:p-6">
-                <SectionLabel>Planungsstand</SectionLabel>
+      {/* ── STATS ────────────────────────────────────────────────────────── */}
+      <div className="grid gap-4 sm:grid-cols-3">
+        <StatChip
+          label="Countdown"
+          value={countdown === null ? "—" : `${countdown} Tage`}
+          sub={`Hochzeit am ${formatWeddingDate(profile.weddingDate)}`}
+          icon={CalendarDays}
+        />
+        <StatChip
+          label="Fortschritt"
+          value={`${progress} %`}
+          sub={`${completedTodos} von ${todos.length} erledigt`}
+          icon={CheckCircle2}
+        />
+        <StatChip
+          label="Offene Aufgaben"
+          value={`${openTodos.length}`}
+          sub={openTodos[0]?.text || "Alles Wichtige erledigt"}
+        />
+      </div>
 
-                <div className="mt-4">
-                  <div className="h-2 rounded-full bg-stone-200">
-                    <div
-                      className="h-2 rounded-full bg-stone-900 transition-all"
-                      style={{ width: `${progress}%` }}
-                    />
-                  </div>
-                </div>
+      {/* ── PLANUNGSSTAND + PROFIL ───────────────────────────────────────── */}
+      <section className="grid gap-5 xl:grid-cols-[0.65fr_1.35fr] items-stretch">
 
-                <div className="mt-5 grid gap-5">
-                  <div>
-                    <div className="text-3xl font-semibold tracking-[-0.02em] md:text-4xl">
-                      {progress}%
-                    </div>
-                    <p className="mt-2 text-sm leading-6 text-stone-600">
-                      {completedTodos} von {todos.length} Aufgaben erledigt.
-                    </p>
-                  </div>
+        {/* Planungsstand */}
+        <Card className="flex flex-col justify-between p-7 md:p-8">
+          <div>
+            <SectionLabel>Planungsstand</SectionLabel>
+            <div className="mt-8 text-6xl font-semibold tracking-tight text-stone-900">
+              {progress}
+              <span className="text-3xl text-stone-300">%</span>
+            </div>
+            <p className="mt-2 text-sm text-stone-400">
+              {completedTodos} von {todos.length} Aufgaben erledigt
+            </p>
+          </div>
 
-                  <div className="grid gap-3 sm:grid-cols-2">
-                    <div className="rounded-[20px] bg-[#f8f3ed] p-4">
-                      <div className="flex items-center gap-2 text-sm font-medium text-stone-800">
-                        <CalendarDays className="h-4 w-4" />
-                        Countdown
-                      </div>
-                      <div className="mt-2 text-xl font-semibold">
-                        {countdown === null ? "Kein Datum" : `${countdown} Tage`}
-                      </div>
-                    </div>
+          {/* Fortschrittsbalken */}
+          <div className="mt-8">
+            <div className="h-1.5 w-full overflow-hidden rounded-full bg-stone-100">
+              <div
+                className="h-full rounded-full bg-stone-800 transition-all duration-500"
+                style={{ width: `${progress}%` }}
+              />
+            </div>
+          </div>
 
-                    <div className="rounded-[20px] bg-[#f8f3ed] p-4">
-                      <div className="flex items-center gap-2 text-sm font-medium text-stone-800">
-                        <CheckCircle2 className="h-4 w-4" />
-                        Offen
-                      </div>
-                      <div className="mt-2 text-xl font-semibold">
-                        {openTodos.length} Aufgaben
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </SoftBlock>
+          {/* Mini-Chips */}
+          <div className="mt-6 grid grid-cols-2 gap-3">
+            <div className="rounded-2xl border border-stone-100 bg-stone-50 p-4">
+              <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-widest text-stone-400">
+                <CalendarDays className="h-3.5 w-3.5" />
+                Countdown
+              </div>
+              <div className="mt-2 text-xl font-semibold text-stone-800">
+                {countdown === null ? "—" : `${countdown}d`}
+              </div>
+            </div>
+            <div className="rounded-2xl border border-stone-100 bg-stone-50 p-4">
+              <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-widest text-stone-400">
+                <CheckCircle2 className="h-3.5 w-3.5" />
+                Offen
+              </div>
+              <div className="mt-2 text-xl font-semibold text-stone-800">
+                {openTodos.length}
+              </div>
+            </div>
+          </div>
+        </Card>
 
-              <SoftBlock className="overflow-hidden">
-                <div className="grid h-full md:grid-cols-[0.95fr_1.05fr]">
-                  <div className="min-h-[260px] md:min-h-full">
-                    <img
-                      src="https://images.unsplash.com/photo-1522673607200-164d1b6ce486?auto=format&fit=crop&w=1200&q=80"
-                      alt="Couple"
-                      className="h-full w-full object-cover"
-                    />
-                  </div>
-                  <div className="p-7 md:p-8">
-                    <SectionLabel>Profil</SectionLabel>
-
-                    <div className="mt-6 grid gap-4">
-                      <div className="grid gap-4 md:grid-cols-2">
-                        <div>
-                          <label className="mb-2 block text-sm font-medium text-stone-700">
-                            Partner 1
-                          </label>
-                          <input
-                            value={profile.partnerOne}
-                            onChange={(event) =>
-                              setProfile((current) => ({
-                                ...current,
-                                partnerOne: event.target.value,
-                              }))
-                            }
-                            className="w-full rounded-[20px] border border-stone-300 bg-[#fcfaf7] px-4 py-3 text-sm text-stone-900 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-stone-300"
-                            placeholder="Name von Partner 1"
-                          />
-                        </div>
-
-                        <div>
-                          <label className="mb-2 block text-sm font-medium text-stone-700">
-                            Partner 2
-                          </label>
-                          <input
-                            value={profile.partnerTwo}
-                            onChange={(event) =>
-                              setProfile((current) => ({
-                                ...current,
-                                partnerTwo: event.target.value,
-                              }))
-                            }
-                            className="w-full rounded-[20px] border border-stone-300 bg-[#fcfaf7] px-4 py-3 text-sm text-stone-900 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-stone-300"
-                            placeholder="Name von Partner 2"
-                          />
-                        </div>
-                      </div>
-
-                      <div className="grid gap-4 md:grid-cols-2">
-                        <div>
-                          <label className="mb-2 block text-sm font-medium text-stone-700">
-                            Hochzeitsdatum
-                          </label>
-                          <input
-                            type="date"
-                            value={profile.weddingDate}
-                            onChange={(event) =>
-                              setProfile((current) => ({
-                                ...current,
-                                weddingDate: event.target.value,
-                              }))
-                            }
-                            className="w-full rounded-[20px] border border-stone-300 bg-[#fcfaf7] px-4 py-3 text-sm text-stone-900 focus:outline-none focus:ring-2 focus:ring-stone-300"
-                          />
-                        </div>
-
-                        <div>
-                          <label className="mb-2 block text-sm font-medium text-stone-700">
-                            Gästezahl
-                          </label>
-                          <input
-                            value={profile.guestCount}
-                            onChange={(event) =>
-                              setProfile((current) => ({
-                                ...current,
-                                guestCount: event.target.value,
-                              }))
-                            }
-                            className="w-full rounded-[20px] border border-stone-300 bg-[#fcfaf7] px-4 py-3 text-sm text-stone-900 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-stone-300"
-                            placeholder="Zum Beispiel 80"
-                          />
-                        </div>
-                      </div>
-
-                      <div>
-                        <label className="mb-2 block text-sm font-medium text-stone-700">
-                          Location
-                        </label>
-                        <input
-                          value={profile.location}
-                          onChange={(event) =>
-                            setProfile((current) => ({
-                              ...current,
-                              location: event.target.value,
-                            }))
-                          }
-                          className="w-full rounded-[20px] border border-stone-300 bg-[#fcfaf7] px-4 py-3 text-sm text-stone-900 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-stone-300"
-                          placeholder="Name oder Ort der Location"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="mb-2 block text-sm font-medium text-stone-700">
-                          Notizen
-                        </label>
-                        <textarea
-                          value={profile.notes}
-                          onChange={(event) =>
-                            setProfile((current) => ({
-                              ...current,
-                              notes: event.target.value,
-                            }))
-                          }
-                          className="min-h-[120px] w-full rounded-[20px] border border-stone-300 bg-[#fcfaf7] px-4 py-3 text-sm text-stone-900 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-stone-300"
-                          placeholder="Wichtige Infos, Wünsche oder offene Gedanken"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </SoftBlock>
-            </section>
-
-            <section className="grid gap-6 lg:grid-cols-[0.8fr_0.8fr_1.4fr] items-stretch">
-              <SoftBlock className="p-7 h-full">
-                <div className="flex items-center gap-3">
-                  <div className="rounded-2xl bg-stone-100 p-3 text-stone-800">
-                    <PiggyBank className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <SectionLabel>Tool</SectionLabel>
-                    <div className="mt-1 text-xl font-semibold">Budgetplaner</div>
-                  </div>
-                </div>
-                <p className="mt-5 text-sm leading-7 text-stone-600">
-                  Budgetrahmen, offene Kosten und Prioritäten in einem eigenen Bereich organisieren.
-                </p>
-                <Link
-                  href="/dashboard/budget"
-                  className="mt-6 inline-flex items-center gap-2 text-sm font-medium text-stone-900"
-                >
-                  Öffnen <ArrowRight className="h-4 w-4" />
-                </Link>
-              </SoftBlock>
-
-              <SoftBlock className="p-7 h-full">
-                <div className="flex items-center gap-3">
-                  <div className="rounded-2xl bg-stone-100 p-3 text-stone-800">
-                    <Users className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <SectionLabel>Tool</SectionLabel>
-                    <div className="mt-1 text-xl font-semibold">Sitzplan</div>
-                  </div>
-                </div>
-                <p className="mt-5 text-sm leading-7 text-stone-600">
-                  Gäste, Tische und Gruppen strukturiert verwalten, ohne dass es die Startseite überlädt.
-                </p>
-                <Link
-                  href="/dashboard/sitzplan"
-                  className="mt-6 inline-flex items-center gap-2 text-sm font-medium text-stone-900"
-                >
-                  Öffnen <ArrowRight className="h-4 w-4" />
-                </Link>
-              </SoftBlock>
-
-              <SoftBlock className="p-7 h-full">
-                <div className="flex items-center gap-3">
-                  <div className="rounded-2xl bg-stone-100 p-3 text-stone-800">
-                    <FileText className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <SectionLabel>Tool</SectionLabel>
-                    <div className="mt-1 text-xl font-semibold">Dokumente</div>
-                  </div>
-                </div>
-
-                <p className="mt-5 text-sm leading-7 text-stone-600">
-                  Hier könnt ihr weitere Dokumente hochladen, zum Beispiel Ablaufplan,
-                  Location-Infos oder wichtige Unterlagen.
-                </p>
-
-                <div className="mt-6 border-t border-[#796849]/30 pt-5">
-                  <h3 className="text-base font-semibold text-[#796849]">Dokumente hochladen</h3>
-                  <p className="mt-2 text-sm leading-6 text-stone-600">
-                    Nach dem Upload findet ihr sie sofort unten in euren hochgeladenen Dokumenten.
-                  </p>
-
-                  <div className="mt-4 flex flex-col gap-3">
+        {/* Profil */}
+        <Card className="overflow-hidden">
+          <div className="grid h-full md:grid-cols-[280px_1fr]">
+            <div className="relative hidden md:block">
+              <img
+                src="https://images.unsplash.com/photo-1522673607200-164d1b6ce486?auto=format&fit=crop&w=800&q=80"
+                alt="Couple"
+                className="absolute inset-0 h-full w-full object-cover"
+              />
+            </div>
+            <div className="p-7 md:p-8">
+              <SectionLabel>Euer Profil</SectionLabel>
+              <div className="mt-6 grid gap-4">
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <Field label="Partner 1">
                     <input
-                      type="file"
-                      multiple
-                      accept="application/pdf,.pdf,.jpg,.jpeg,.png,.doc,.docx"
-                      onChange={handleFilesSelected}
-                      className="w-full rounded-xl border border-stone-300 bg-white px-3 py-2 text-sm text-stone-700"
+                      value={profile.partnerOne}
+                      onChange={(e) =>
+                        setProfile((c) => ({ ...c, partnerOne: e.target.value }))
+                      }
+                      className={inputCls}
+                      placeholder="Name"
                     />
+                  </Field>
+                  <Field label="Partner 2">
+                    <input
+                      value={profile.partnerTwo}
+                      onChange={(e) =>
+                        setProfile((c) => ({ ...c, partnerTwo: e.target.value }))
+                      }
+                      className={inputCls}
+                      placeholder="Name"
+                    />
+                  </Field>
+                </div>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <Field label="Hochzeitsdatum">
+                    <input
+                      type="date"
+                      value={profile.weddingDate}
+                      onChange={(e) =>
+                        setProfile((c) => ({ ...c, weddingDate: e.target.value }))
+                      }
+                      className={inputCls}
+                    />
+                  </Field>
+                  <Field label="Gästezahl">
+                    <input
+                      value={profile.guestCount}
+                      onChange={(e) =>
+                        setProfile((c) => ({ ...c, guestCount: e.target.value }))
+                      }
+                      className={inputCls}
+                      placeholder="z. B. 80"
+                    />
+                  </Field>
+                </div>
+                <Field label="Location">
+                  <input
+                    value={profile.location}
+                    onChange={(e) =>
+                      setProfile((c) => ({ ...c, location: e.target.value }))
+                    }
+                    className={inputCls}
+                    placeholder="Name oder Ort der Location"
+                  />
+                </Field>
+                <Field label="Notizen">
+                  <textarea
+                    value={profile.notes}
+                    onChange={(e) =>
+                      setProfile((c) => ({ ...c, notes: e.target.value }))
+                    }
+                    className={`${textareaCls} min-h-[100px]`}
+                    placeholder="Wichtige Infos, Wünsche oder offene Gedanken …"
+                  />
+                </Field>
+              </div>
+            </div>
+          </div>
+        </Card>
+      </section>
 
+      {/* ── TOOLS: Budget / Sitzplan / Dokumente ─────────────────────────── */}
+      <section className="grid gap-5 lg:grid-cols-3 items-stretch">
+
+        {/* Budget */}
+        <Card className="group flex flex-col p-7">
+          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-stone-900 text-white shadow-sm transition group-hover:scale-105 group-hover:shadow-md">
+            <PiggyBank className="h-5 w-5" />
+          </div>
+          <div className="mt-5">
+            <SectionLabel>Tool</SectionLabel>
+            <div className="mt-1.5 text-xl font-semibold text-stone-900">Budgetplaner</div>
+          </div>
+          <p className="mt-3 flex-1 text-sm leading-7 text-stone-400">
+            Budgetrahmen, offene Kosten und Prioritäten übersichtlich organisieren.
+          </p>
+          <Link
+            href="/dashboard/budget"
+            className="mt-6 inline-flex items-center gap-1.5 text-sm font-semibold text-stone-700 transition-all hover:gap-3 hover:text-stone-900"
+          >
+            Öffnen <ArrowRight className="h-4 w-4" />
+          </Link>
+        </Card>
+
+        {/* Sitzplan */}
+        <Card className="group flex flex-col p-7">
+          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-stone-900 text-white shadow-sm transition group-hover:scale-105 group-hover:shadow-md">
+            <Users className="h-5 w-5" />
+          </div>
+          <div className="mt-5">
+            <SectionLabel>Tool</SectionLabel>
+            <div className="mt-1.5 text-xl font-semibold text-stone-900">Sitzplan</div>
+          </div>
+          <p className="mt-3 flex-1 text-sm leading-7 text-stone-400">
+            Gäste, Tische und Gruppen strukturiert verwalten — ohne Überladen der Startseite.
+          </p>
+          <Link
+            href="/dashboard/sitzplan"
+            className="mt-6 inline-flex items-center gap-1.5 text-sm font-semibold text-stone-700 transition-all hover:gap-3 hover:text-stone-900"
+          >
+            Öffnen <ArrowRight className="h-4 w-4" />
+          </Link>
+        </Card>
+
+        {/* Dokumente */}
+        <Card className="flex flex-col p-7">
+          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-stone-900 text-white shadow-sm">
+            <FileText className="h-5 w-5" />
+          </div>
+          <div className="mt-5">
+            <SectionLabel>Tool</SectionLabel>
+            <div className="mt-1.5 text-xl font-semibold text-stone-900">Dokumente</div>
+          </div>
+          <p className="mt-3 text-sm leading-7 text-stone-400">
+            Ablaufplan, Location-Infos und wichtige Unterlagen griffbereit.
+          </p>
+
+          {/* Upload-Bereich */}
+          <div className="mt-6 rounded-2xl border border-dashed border-stone-200 bg-stone-50 p-5">
+            <div className="flex flex-col gap-3">
+              <input
+                type="file"
+                multiple
+                accept="application/pdf,.pdf,.jpg,.jpeg,.png,.doc,.docx"
+                onChange={handleFilesSelected}
+                className="w-full rounded-lg border border-stone-200 bg-white px-3 py-2 text-xs text-stone-500 file:mr-3 file:rounded-md file:border-0 file:bg-stone-900 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-white"
+              />
+              <button
+                type="button"
+                onClick={handleUploadDocuments}
+                disabled={uploading || selectedFiles.length === 0}
+                className="w-full rounded-xl bg-stone-900 px-4 py-2.5 text-xs font-semibold text-white transition hover:bg-stone-700 disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                {uploading ? "Lädt hoch…" : "Upload starten"}
+              </button>
+            </div>
+
+            {uploadProgress > 0 && (
+              <div className="mt-3 flex items-center gap-3">
+                <div className="h-1 flex-1 overflow-hidden rounded-full bg-stone-200">
+                  <div
+                    className="h-full bg-stone-800 transition-all"
+                    style={{ width: `${uploadProgress}%` }}
+                  />
+                </div>
+                <span className="text-[10px] font-semibold text-stone-400">
+                  {uploadProgress}%
+                </span>
+              </div>
+            )}
+
+            {uploadMessage && (
+              <div className="mt-2 text-xs text-stone-500">{uploadMessage}</div>
+            )}
+          </div>
+
+          {/* Dateiliste */}
+          <div className="mt-5 flex-1 space-y-2">
+            <div className="text-[10px] font-semibold uppercase tracking-widest text-stone-400">
+              Hochgeladen
+            </div>
+            {documents.length === 0 ? (
+              <div className="text-xs italic text-stone-300">
+                Noch keine Dateien vorhanden.
+              </div>
+            ) : (
+              documents.map((item) => (
+                <div
+                  key={item.id}
+                  className="flex items-center justify-between gap-3 rounded-xl border border-stone-100 bg-stone-50 px-4 py-3 transition hover:bg-white hover:shadow-sm"
+                >
+                  <div className="min-w-0 flex-1">
+                    <div className="truncate text-xs font-semibold text-stone-800">
+                      {item.name}
+                    </div>
+                    <div className="mt-0.5 text-[10px] text-stone-400">
+                      {formatFileSize(item.size)}
+                    </div>
+                  </div>
+                  <div className="flex shrink-0 items-center gap-3">
+                    <a
+                      href={item.url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-[11px] font-semibold text-stone-500 hover:text-stone-900 hover:underline"
+                    >
+                      Öffnen
+                    </a>
                     <button
                       type="button"
-                      onClick={handleUploadDocuments}
-                      disabled={uploading || selectedFiles.length === 0}
-                      className="w-full rounded-xl bg-[#e99a6c] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#d8895c] disabled:cursor-not-allowed disabled:opacity-60"
+                      onClick={() => handleDeleteDocument(item)}
+                      className="text-[11px] font-semibold text-red-400 hover:text-red-600 hover:underline"
                     >
-                      {uploading ? "Lädt hoch..." : "Upload starten"}
+                      Löschen
                     </button>
                   </div>
-
-                  {uploadProgress > 0 ? (
-                    <div className="mt-4 flex items-center gap-3">
-                      <div className="h-2 flex-1 overflow-hidden rounded-full border border-stone-200 bg-[#f2ede6]">
-                        <div
-                          className="h-full bg-[#796849] transition-all"
-                          style={{ width: `${uploadProgress}%` }}
-                        />
-                      </div>
-                      <div className="w-12 text-right text-xs font-semibold text-stone-500">
-                        {uploadProgress}%
-                      </div>
-                    </div>
-                  ) : null}
-
-                  {uploadMessage ? (
-                    <div className="mt-3 text-sm text-stone-600">{uploadMessage}</div>
-                  ) : null}
-
-                  <div className="mt-5 text-sm font-semibold text-[#796849]">
-                    Eure hochgeladenen Dokumente:
-                  </div>
-
-                  <div className="mt-3 space-y-2">
-                    {documents.length === 0 ? (
-                      <div className="text-sm italic text-stone-500">
-                        Noch keine Uploads vorhanden.
-                      </div>
-                    ) : (
-                      documents.map((item) => (
-                        <div
-                          key={item.id}
-                          className="flex items-center justify-between gap-3 rounded-[14px] border border-stone-200 bg-white px-4 py-3"
-                        >
-                          <div className="min-w-0 flex-1">
-                            <div className="truncate text-sm font-semibold text-stone-900">
-                              {item.name}
-                            </div>
-                            <div className="text-xs text-stone-500">
-                              {[item.contentType, formatFileSize(item.size)]
-                                .filter(Boolean)
-                                .join(" | ")}
-                            </div>
-                          </div>
-
-                          <div className="flex shrink-0 items-center gap-3">
-                            <a
-                              href={item.url}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="text-sm font-semibold text-[#796849] hover:underline"
-                            >
-                              Öffnen
-                            </a>
-                            <button
-                              type="button"
-                              onClick={() => handleDeleteDocument(item)}
-                              className="text-sm font-semibold text-red-700 hover:underline"
-                            >
-                              Löschen
-                            </button>
-                          </div>
-                        </div>
-                      ))
-                    )}
-                  </div>
                 </div>
-              </SoftBlock>
-            </section>
-
-            <section className="grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
-              <SoftBlock className="p-7 md:p-8 xl:p-10">
-                <div className="flex items-end justify-between gap-4">
-                  <div>
-                    <SectionLabel>Aufgaben</SectionLabel>
-                    <h2 className="mt-4 text-3xl font-semibold tracking-[-0.03em] md:text-4xl">
-                      To do Liste
-                    </h2>
-                  </div>
-                  <Link
-                    href="/dashboard"
-                    className="hidden rounded-full border border-stone-300 px-4 py-2 text-sm text-stone-700 transition hover:bg-stone-100 md:inline-flex"
-                  >
-                    Bereich öffnen
-                  </Link>
-                </div>
-
-                <div className="mt-8 space-y-3">
-                  {todos.map((item) => (
-                    <label
-                      key={item.id}
-                      className="flex items-center gap-4 rounded-[24px] border border-stone-200 px-5 py-4 transition hover:bg-stone-50"
-                    >
-                      <input
-                        type="checkbox"
-                        checked={item.done}
-                        onChange={() =>
-                          setTodos((current) =>
-                            current.map((todo) =>
-                              todo.id === item.id ? { ...todo, done: !todo.done } : todo
-                            )
-                          )
-                        }
-                        className="h-4 w-4 accent-stone-900"
-                      />
-                      <span className={item.done ? "text-stone-400 line-through" : "text-stone-800"}>
-                        {item.text}
-                      </span>
-                    </label>
-                  ))}
-                </div>
-              </SoftBlock>
-
-              <SoftBlock className="p-7 md:p-8 xl:p-10">
-                <SectionLabel>Musik</SectionLabel>
-                <h2 className="mt-4 text-3xl font-semibold tracking-[-0.03em] md:text-4xl">
-                  Spotify & Musikwünsche
-                </h2>
-
-                <div className="mt-8 space-y-5">
-                  <div>
-                    <div className="mb-2 text-sm font-medium text-stone-700">Must Play</div>
-                    <textarea
-                      value={music.mustPlay}
-                      onChange={(event) =>
-                        setMusic((current) => ({
-                          ...current,
-                          mustPlay: event.target.value,
-                        }))
-                      }
-                      className="min-h-[110px] w-full rounded-[24px] border border-stone-300 bg-[#fcfaf7] px-4 py-4 text-sm text-stone-900 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-stone-300"
-                      placeholder="Songs, Momente oder Stimmungen, die unbedingt gespielt werden sollen"
-                    />
-                  </div>
-                  <div>
-                    <div className="mb-2 text-sm font-medium text-stone-700">No Go</div>
-                    <textarea
-                      value={music.noGo}
-                      onChange={(event) =>
-                        setMusic((current) => ({
-                          ...current,
-                          noGo: event.target.value,
-                        }))
-                      }
-                      className="min-h-[110px] w-full rounded-[24px] border border-stone-300 bg-[#fcfaf7] px-4 py-4 text-sm text-stone-900 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-stone-300"
-                      placeholder="Lieder, Genres oder Vibes, die vermieden werden sollen"
-                    />
-                  </div>
-                  <div>
-                    <div className="mb-2 text-sm font-medium text-stone-700">Spotify Playlist</div>
-                    <input
-                      value={music.spotify}
-                      onChange={(event) =>
-                        setMusic((current) => ({
-                          ...current,
-                          spotify: event.target.value,
-                        }))
-                      }
-                      className="w-full rounded-[24px] border border-stone-300 bg-[#fcfaf7] px-4 py-4 text-sm text-stone-900 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-stone-300"
-                      placeholder="Spotify Playlist Link"
-                    />
-                  </div>
-                </div>
-              </SoftBlock>
-            </section>
+              ))
+            )}
           </div>
+        </Card>
+      </section>
+
+      {/* ── TODOS + MUSIK ─────────────────────────────────────────────────── */}
+      <section className="grid gap-5 xl:grid-cols-2 items-start">
+
+        {/* To-do Liste */}
+        <Card className="p-7 md:p-8">
+          <div className="flex items-end justify-between gap-4">
+            <div>
+              <SectionLabel>Aufgaben</SectionLabel>
+              <h2 className="mt-2 text-2xl font-semibold tracking-tight text-stone-900">
+                To-do Liste
+              </h2>
+            </div>
+            <div className="rounded-full border border-stone-100 bg-stone-50 px-3 py-1 text-xs font-semibold text-stone-400">
+              {completedTodos}/{todos.length}
+            </div>
+          </div>
+
+          <div className="mt-6 space-y-2">
+            {todos.map((item) => (
+              <label
+                key={item.id}
+                className={`flex cursor-pointer items-center gap-4 rounded-2xl border px-5 py-4 transition ${
+                  item.done
+                    ? "border-stone-100 bg-stone-50"
+                    : "border-stone-100 bg-white hover:bg-stone-50 hover:shadow-sm"
+                }`}
+              >
+                <input
+                  type="checkbox"
+                  checked={item.done}
+                  onChange={() =>
+                    setTodos((c) =>
+                      c.map((t) =>
+                        t.id === item.id ? { ...t, done: !t.done } : t
+                      )
+                    )
+                  }
+                  className="h-4 w-4 accent-stone-900"
+                />
+                <span
+                  className={`text-sm ${
+                    item.done
+                      ? "text-stone-300 line-through"
+                      : "text-stone-700"
+                  }`}
+                >
+                  {item.text}
+                </span>
+              </label>
+            ))}
+          </div>
+        </Card>
+
+        {/* Musik */}
+        <Card className="p-7 md:p-8">
+          <SectionLabel>Musik</SectionLabel>
+          <h2 className="mt-2 text-2xl font-semibold tracking-tight text-stone-900">
+            Spotify &amp; Musikwünsche
+          </h2>
+
+          <div className="mt-6 space-y-5">
+            <Field label="Must Play">
+              <textarea
+                value={music.mustPlay}
+                onChange={(e) =>
+                  setMusic((c) => ({ ...c, mustPlay: e.target.value }))
+                }
+                className={`${textareaCls} min-h-[100px]`}
+                placeholder="Songs, Momente oder Stimmungen, die unbedingt gespielt werden sollen"
+              />
+            </Field>
+            <Field label="No Go">
+              <textarea
+                value={music.noGo}
+                onChange={(e) =>
+                  setMusic((c) => ({ ...c, noGo: e.target.value }))
+                }
+                className={`${textareaCls} min-h-[100px]`}
+                placeholder="Lieder, Genres oder Vibes, die vermieden werden sollen"
+              />
+            </Field>
+            <Field label="Spotify Playlist">
+              <input
+                value={music.spotify}
+                onChange={(e) =>
+                  setMusic((c) => ({ ...c, spotify: e.target.value }))
+                }
+                className={inputCls}
+                placeholder="Spotify Playlist Link"
+              />
+            </Field>
+          </div>
+        </Card>
+      </section>
+    </div>
   );
 }
