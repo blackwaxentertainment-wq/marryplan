@@ -13,14 +13,8 @@ import { auth, db } from "../lib/firebase";
 import { onAuthStateChanged, type User } from "firebase/auth";
 import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
 import {
-  ArrowRight,
   CalendarDays,
   CheckCircle2,
-  CheckSquare,
-  FileText,
-  Music4,
-  PiggyBank,
-  Users,
 } from "lucide-react";
 
 type ProfileType = {
@@ -138,43 +132,6 @@ function Field({ label, children }: { label: string; children: ReactNode }) {
   );
 }
 
-function ToolCard({
-  href,
-  title,
-  text,
-  icon: Icon,
-}: {
-  href: string;
-  title: string;
-  text: string;
-  icon: ElementType;
-}) {
-  return (
-    <Link
-      href={href}
-      className="group flex flex-col rounded-3xl border border-stone-100 bg-white p-7 shadow-[0_2px_16px_0_rgba(0,0,0,0.05)] transition hover:-translate-y-0.5 hover:shadow-[0_12px_30px_rgba(0,0,0,0.08)]"
-    >
-      <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-stone-900 text-white shadow-sm transition group-hover:scale-105 group-hover:shadow-md">
-        <Icon className="h-5 w-5" />
-      </div>
-
-      <div className="mt-5">
-        <SectionLabel>Tool</SectionLabel>
-        <div className="mt-1.5 text-xl font-semibold text-stone-900">
-          {title}
-        </div>
-      </div>
-
-      <p className="mt-3 flex-1 text-sm leading-7 text-stone-400">{text}</p>
-
-      <div className="mt-6 inline-flex items-center gap-1.5 text-sm font-semibold text-stone-700 transition-all group-hover:gap-3 group-hover:text-stone-900">
-        Öffnen
-        <ArrowRight className="h-4 w-4" />
-      </div>
-    </Link>
-  );
-}
-
 const inputCls =
   "w-full rounded-xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm text-stone-900 placeholder:text-stone-300 transition focus:border-stone-400 focus:bg-white focus:outline-none";
 
@@ -237,9 +194,7 @@ export default function DashboardPage() {
             });
           }
 
-          if (data.todos) {
-            setTodos(data.todos);
-          }
+          if (data.todos) setTodos(data.todos);
 
           if (data.music) {
             setMusic({
@@ -267,18 +222,11 @@ export default function DashboardPage() {
     const t = setTimeout(async () => {
       try {
         setSaveMessage("Speichert...");
-
         await setDoc(
           doc(db, "users", currentUser.uid),
-          {
-            profile,
-            todos,
-            music,
-            updatedAt: serverTimestamp(),
-          },
+          { profile, todos, music, updatedAt: serverTimestamp() },
           { merge: true }
         );
-
         setSaveMessage("Gespeichert");
       } catch {
         setSaveMessage("Speichern fehlgeschlagen");
@@ -304,6 +252,8 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-5">
+
+      {/* ── HERO ─────────────────────────────────────────────────────────── */}
       <section className="overflow-hidden rounded-3xl border border-stone-100 bg-white shadow-[0_2px_24px_0_rgba(0,0,0,0.06)]">
         <div className="grid lg:grid-cols-[1fr_480px]">
           <div className="flex flex-col justify-between bg-gradient-to-br from-[#fdfaf6] via-white to-[#f9f5f0] p-8 md:p-12 xl:p-14">
@@ -329,10 +279,7 @@ export default function DashboardPage() {
               {[
                 { label: "Datum", value: formatWeddingDate(profile.weddingDate) },
                 { label: "Gäste", value: profile.guestCount || "—" },
-                {
-                  label: "Nächster Schritt",
-                  value: openTodos[0]?.text || "Alles erledigt",
-                },
+                { label: "Nächster Schritt", value: openTodos[0]?.text || "Alles erledigt" },
               ].map((s) => (
                 <div key={s.label}>
                   <div className="text-[10px] font-semibold uppercase tracking-widest text-stone-400">
@@ -369,6 +316,7 @@ export default function DashboardPage() {
         </div>
       </section>
 
+      {/* ── STATS ────────────────────────────────────────────────────────── */}
       <div className="grid gap-4 sm:grid-cols-3">
         <StatChip
           label="Countdown"
@@ -389,6 +337,7 @@ export default function DashboardPage() {
         />
       </div>
 
+      {/* ── PLANUNGSSTAND + PROFIL ───────────────────────────────────────── */}
       <section className="grid gap-5 xl:grid-cols-[0.65fr_1.35fr] items-stretch">
         <Card className="flex flex-col justify-between p-7 md:p-8">
           <div>
@@ -521,43 +470,6 @@ export default function DashboardPage() {
             </div>
           </div>
         </Card>
-      </section>
-
-      <section className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-        <ToolCard
-          href="/dashboard/budget"
-          title="Budgetplaner"
-          text="Budgetrahmen, offene Kosten und Prioritäten übersichtlich organisieren."
-          icon={PiggyBank}
-        />
-
-        <ToolCard
-          href="/dashboard/sitzplan"
-          title="Sitzplan"
-          text="Gäste, Tische und Gruppen strukturiert verwalten, ohne die Übersicht zu verlieren."
-          icon={Users}
-        />
-
-        <ToolCard
-          href="/dashboard/dokumente"
-          title="Dokumente"
-          text="Ablaufplan, Verträge und wichtige Unterlagen an einem zentralen Ort öffnen und verwalten."
-          icon={FileText}
-        />
-
-        <ToolCard
-          href="/dashboard/musik"
-          title="Musik"
-          text="Must Plays, No Gos und Spotify-Playlisten gesammelt auf einer eigenen Unterseite."
-          icon={Music4}
-        />
-
-        <ToolCard
-          href="/dashboard/todos"
-          title="To do Liste"
-          text="Alle Aufgaben separat verwalten und den Planungsstand jederzeit im Blick behalten."
-          icon={CheckSquare}
-        />
       </section>
     </div>
   );
