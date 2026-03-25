@@ -1344,7 +1344,7 @@ export default function SitzplanPage() {
               <h1 className="mt-6 max-w-lg text-5xl font-semibold leading-[1.06] tracking-[-0.045em] text-stone-900 md:text-6xl">
                 Euer
                 <br />
-                <span className="text-[#b08d6a]">Sitzplan</span>
+                <span className="text-[#b08d6a]">Sitzplan Generator</span>
               </h1>
               <p className="mt-5 max-w-sm text-[15px] leading-7 text-stone-400">
                 Tische anlegen, Gäste per Drag & Drop platzieren und den perfekten Sitzplan erstellen.
