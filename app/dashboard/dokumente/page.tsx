@@ -19,7 +19,9 @@ import {
   ref,
   uploadBytesResumable,
 } from "firebase/storage";
-import { FileText } from "lucide-react";
+import { FileText, UploadCloud } from "lucide-react";
+
+// ─── Typen ────────────────────────────────────────────────────────────────────
 
 type DocumentType = {
   id: string;
@@ -30,6 +32,8 @@ type DocumentType = {
   contentType: string;
 };
 
+// ─── Hilfsfunktionen ──────────────────────────────────────────────────────────
+
 function formatFileSize(bytes: number) {
   if (!bytes) return "";
   const mb = bytes / 1024 / 1024;
@@ -38,15 +42,17 @@ function formatFileSize(bytes: number) {
   return `${kb.toFixed(0)} KB`;
 }
 
+// ─── Design-Bausteine ─────────────────────────────────────────────────────────
+
 function SectionLabel({ children }: { children: ReactNode }) {
   return (
-    <div className="text-[11px] font-medium uppercase tracking-[0.28em] text-stone-500">
+    <div className="text-[10px] font-semibold uppercase tracking-[0.32em] text-stone-400">
       {children}
     </div>
   );
 }
 
-function SoftBlock({
+function Card({
   children,
   className = "",
 }: {
@@ -54,11 +60,15 @@ function SoftBlock({
   className?: string;
 }) {
   return (
-    <div className={`rounded-[32px] border border-stone-200 bg-white ${className}`}>
+    <div
+      className={`rounded-3xl border border-stone-100 bg-white shadow-[0_2px_16px_0_rgba(0,0,0,0.05)] ${className}`}
+    >
       {children}
     </div>
   );
 }
+
+// ─── Hauptkomponente ───────────────────────────────────────────────────────────
 
 export default function DokumentePage() {
   const [authLoading, setAuthLoading] = useState(true);
@@ -69,6 +79,8 @@ export default function DokumentePage() {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadMessage, setUploadMessage] = useState("");
 
+  // ─── Auth & Daten laden ───────────────────────────────────────────────────
+
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (!user || !user.emailVerified) {
@@ -76,73 +88,61 @@ export default function DokumentePage() {
         setAuthLoading(false);
         return;
       }
-
       setCurrentUser(user);
-
       try {
-        const docsQuery = query(
-          collection(db, "users", user.uid, "documents"),
-          orderBy("createdAt", "desc")
+        const docsSnap = await getDocs(
+          query(
+            collection(db, "users", user.uid, "documents"),
+            orderBy("createdAt", "desc")
+          )
         );
-
-        const docsSnapshot = await getDocs(docsQuery);
-
         setDocuments(
-          docsSnapshot.docs.map((docItem) => ({
-            id: docItem.id,
-            ...(docItem.data() as Omit<DocumentType, "id">),
+          docsSnap.docs.map((d) => ({
+            id: d.id,
+            ...(d.data() as Omit<DocumentType, "id">),
           }))
         );
-      } catch (error) {
-        console.error("Fehler beim Laden der Dokumente:", error);
+      } catch (err) {
+        console.error("Fehler beim Laden der Dokumente:", err);
       } finally {
         setAuthLoading(false);
       }
     });
-
     return () => unsubscribe();
   }, []);
 
-  const handleFilesSelected = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(event.target.files || []);
-    setSelectedFiles(files);
+  // ─── Upload-Handler ───────────────────────────────────────────────────────
+
+  const handleFilesSelected = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSelectedFiles(Array.from(e.target.files || []));
     setUploadMessage("");
   };
 
   const handleUploadDocuments = async () => {
     if (!currentUser || selectedFiles.length === 0) return;
-
     try {
       setUploading(true);
       setUploadProgress(0);
-      setUploadMessage("");
-
-      let uploadedCount = 0;
-      const totalFiles = selectedFiles.length;
-
+      let uploaded = 0;
       for (const file of selectedFiles) {
         const filePath = `documents/${currentUser.uid}/${Date.now()}-${file.name}`;
         const storageRef = ref(storage, filePath);
-
         await new Promise<void>((resolve, reject) => {
-          const uploadTask = uploadBytesResumable(storageRef, file);
-
-          uploadTask.on(
+          const task = uploadBytesResumable(storageRef, file);
+          task.on(
             "state_changed",
-            (snapshot) => {
-              const fileProgress =
-                (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-
-              const overallProgress =
-                ((uploadedCount + fileProgress / 100) / totalFiles) * 100;
-
-              setUploadProgress(Math.round(overallProgress));
-            },
-            (error) => reject(error),
+            (snap) =>
+              setUploadProgress(
+                Math.round(
+                  ((uploaded + snap.bytesTransferred / snap.totalBytes) /
+                    selectedFiles.length) *
+                    100
+                )
+              ),
+            reject,
             async () => {
               try {
-                const url = await getDownloadURL(uploadTask.snapshot.ref);
-
+                const url = await getDownloadURL(task.snapshot.ref);
                 const docRef = await addDoc(
                   collection(db, "users", currentUser.uid, "documents"),
                   {
@@ -154,8 +154,7 @@ export default function DokumentePage() {
                     createdAt: serverTimestamp(),
                   }
                 );
-
-                setDocuments((current) => [
+                setDocuments((c) => [
                   {
                     id: docRef.id,
                     name: file.name,
@@ -164,10 +163,9 @@ export default function DokumentePage() {
                     size: file.size,
                     contentType: file.type || "application/octet-stream",
                   },
-                  ...current,
+                  ...c,
                 ]);
-
-                uploadedCount += 1;
+                uploaded++;
                 resolve();
               } catch (err) {
                 reject(err);
@@ -176,180 +174,231 @@ export default function DokumentePage() {
           );
         });
       }
-
-      setUploadMessage("Dokument(e) erfolgreich hochgeladen.");
+      setUploadMessage("Erfolgreich hochgeladen.");
       setSelectedFiles([]);
       setUploadProgress(100);
-    } catch (error) {
-      console.error("Fehler beim Upload:", error);
+    } catch {
       setUploadMessage("Upload fehlgeschlagen.");
     } finally {
       setUploading(false);
-
-      setTimeout(() => {
-        setUploadProgress(0);
-      }, 700);
+      setTimeout(() => setUploadProgress(0), 700);
     }
   };
 
-  const handleDeleteDocument = async (documentItem: DocumentType) => {
-    if (!currentUser) return;
-
-    const ok = window.confirm("Datei wirklich löschen?");
-    if (!ok) return;
-
+  const handleDeleteDocument = async (item: DocumentType) => {
+    if (!currentUser || !window.confirm("Datei wirklich löschen?")) return;
     try {
-      await deleteObject(ref(storage, documentItem.path));
-      await deleteDoc(doc(db, "users", currentUser.uid, "documents", documentItem.id));
-
-      setDocuments((current) =>
-        current.filter((item) => item.id !== documentItem.id)
-      );
-    } catch (error) {
-      console.error("Fehler beim Löschen:", error);
+      await deleteObject(ref(storage, item.path));
+      await deleteDoc(doc(db, "users", currentUser.uid, "documents", item.id));
+      setDocuments((c) => c.filter((d) => d.id !== item.id));
+    } catch {
       setUploadMessage("Löschen fehlgeschlagen.");
     }
   };
 
+  // ─── Lade-Zustand ─────────────────────────────────────────────────────────
+
   if (authLoading) {
     return (
-      <main className="min-h-screen bg-[#f5efe8] p-6 text-stone-900">
-        <div className="mx-auto max-w-[1380px] rounded-[32px] border border-stone-200 bg-white p-6">
-          Dokumente werden geladen...
-        </div>
+      <main className="flex min-h-screen items-center justify-center bg-[#f7f4f0]">
+        <div className="text-sm text-stone-400">Wird geladen…</div>
       </main>
     );
   }
 
+  // ─── Render ───────────────────────────────────────────────────────────────
+
   return (
-    <div className="space-y-6">
-      <section className="overflow-hidden rounded-[40px] border border-stone-200 bg-[linear-gradient(135deg,rgba(233,154,108,.18),rgba(255,255,255,.96))] p-7 shadow-[0_18px_45px_rgba(53,35,23,.10)] md:p-10">
-        <div className="grid gap-6 lg:grid-cols-[1.2fr_.8fr]">
-          <div>
-            <span className="inline-flex rounded-full border border-[rgba(233,154,108,.35)] bg-white px-3 py-2 text-[12px] font-extrabold uppercase tracking-[.04em] text-[#c97748]">
-              Wedding Hub Tool
-            </span>
-            <h1 className="mt-4 text-[clamp(28px,4vw,50px)] font-semibold leading-[1.05]">
-              Dokumente für eure Hochzeit
-            </h1>
-            <p className="mt-4 max-w-[700px] text-[15px] leading-7 text-stone-600">
-              Ladet wichtige Unterlagen hoch und habt Ablaufpläne, Verträge, PDFs
-              und Infos jederzeit griffbereit.
-            </p>
+    <div className="space-y-5">
+
+      {/* ── HERO ─────────────────────────────────────────────────────────── */}
+      <section className="overflow-hidden rounded-3xl border border-stone-100 bg-white shadow-[0_2px_24px_0_rgba(0,0,0,0.06)]">
+        <div className="grid lg:grid-cols-[1fr_380px]">
+
+          {/* Textseite */}
+          <div className="flex flex-col justify-between bg-gradient-to-br from-[#fdfaf6] via-white to-[#f9f5f0] p-8 md:p-12 xl:p-14">
+            <div>
+              <SectionLabel>Wedding Hub · Tool</SectionLabel>
+              <h1 className="mt-6 max-w-lg text-5xl font-semibold leading-[1.06] tracking-[-0.045em] text-stone-900 md:text-6xl">
+                Eure
+                <br />
+                <span className="text-[#b08d6a]">Dokumente</span>
+              </h1>
+              <p className="mt-5 max-w-sm text-[15px] leading-7 text-stone-400">
+                Verträge, Ablaufpläne und wichtige Unterlagen — immer griffbereit an einem Ort.
+              </p>
+            </div>
+
+            {/* Stat */}
+            <div className="mt-10 flex flex-wrap gap-8 border-t border-stone-100 pt-8">
+              <div>
+                <div className="text-[10px] font-semibold uppercase tracking-widest text-stone-400">
+                  Hochgeladen
+                </div>
+                <div className="mt-1.5 text-3xl font-semibold tracking-tight text-stone-900">
+                  {documents.length}
+                  <span className="ml-1 text-base text-stone-300">
+                    {documents.length === 1 ? "Datei" : "Dateien"}
+                  </span>
+                </div>
+              </div>
+            </div>
           </div>
 
-          <div className="rounded-[22px] border border-stone-200 bg-white/90 p-[18px] shadow-[0_10px_24px_rgba(53,35,23,.08)]">
-            <div className="mb-2 text-[12px] font-extrabold uppercase tracking-[.04em] text-stone-500">
-              Übersicht
-            </div>
-            <div className="text-[30px] font-black text-[#c97748]">
-              {documents.length}
-            </div>
-            <div className="mt-1 text-[13px] leading-5 text-stone-500">
-              hochgeladene Dokumente
+          {/* Bildseite */}
+          <div className="relative hidden min-h-[320px] lg:block">
+            <img
+              src="https://images.unsplash.com/photo-1507679799987-c73779587ccf?auto=format&fit=crop&w=800&q=80"
+              alt="Dokumente"
+              className="absolute inset-0 h-full w-full object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-black/10 to-transparent" />
+            <div className="absolute bottom-0 left-0 right-0 p-7 text-white">
+              <div className="text-[10px] font-semibold uppercase tracking-[0.3em] text-white/50">
+                Alles an einem Ort
+              </div>
+              <div className="mt-2 text-lg font-semibold leading-snug tracking-tight">
+                Kein Suchen mehr in Mails & Ordnern
+              </div>
             </div>
           </div>
         </div>
       </section>
 
-      <SoftBlock className="p-7 md:p-8">
-        <div className="flex items-center gap-3">
-          <div className="rounded-2xl bg-stone-100 p-3 text-stone-800">
-            <FileText className="h-5 w-5" />
-          </div>
-          <div>
-            <SectionLabel>Tool</SectionLabel>
-            <div className="mt-1 text-xl font-semibold">Dokumente</div>
-          </div>
-        </div>
+      {/* ── UPLOAD + LISTE ───────────────────────────────────────────────── */}
+      <div className="grid gap-5 lg:grid-cols-[380px_1fr] items-start">
 
-        <p className="mt-5 text-sm leading-7 text-stone-600">
-          Hier könnt ihr weitere Dokumente hochladen, zum Beispiel Ablaufplan,
-          Location-Infos oder wichtige Unterlagen.
-        </p>
-
-        <div className="mt-6 border-t border-[#796849]/30 pt-5">
-          <h3 className="text-base font-semibold text-[#796849]">Dokumente hochladen</h3>
-          <p className="mt-2 text-sm leading-6 text-stone-600">
-            Nach dem Upload findet ihr sie sofort unten in euren hochgeladenen Dokumenten.
+        {/* Upload-Card */}
+        <Card className="p-7">
+          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-stone-900 text-white shadow-sm">
+            <UploadCloud className="h-5 w-5" />
+          </div>
+          <div className="mt-5">
+            <SectionLabel>Upload</SectionLabel>
+            <div className="mt-1.5 text-xl font-semibold text-stone-900">
+              Dokument hinzufügen
+            </div>
+          </div>
+          <p className="mt-3 text-sm leading-7 text-stone-400">
+            PDF, Word, JPG oder PNG — nach dem Upload sofort in der Liste verfügbar.
           </p>
 
-          <div className="mt-4 flex flex-col gap-3">
-            <input
-              type="file"
-              multiple
-              accept="application/pdf,.pdf,.jpg,.jpeg,.png,.doc,.docx"
-              onChange={handleFilesSelected}
-              className="w-full rounded-xl border border-stone-300 bg-white px-3 py-2 text-sm text-stone-700"
-            />
+          <div className="mt-6 rounded-2xl border border-dashed border-stone-200 bg-stone-50 p-5">
+            <div className="flex flex-col gap-3">
+              <input
+                type="file"
+                multiple
+                accept="application/pdf,.pdf,.jpg,.jpeg,.png,.doc,.docx"
+                onChange={handleFilesSelected}
+                className="w-full rounded-lg border border-stone-200 bg-white px-3 py-2 text-xs text-stone-500 file:mr-3 file:rounded-md file:border-0 file:bg-stone-900 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-white"
+              />
 
-            <button
-              type="button"
-              onClick={handleUploadDocuments}
-              disabled={uploading || selectedFiles.length === 0}
-              className="w-full rounded-xl bg-[#e99a6c] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#d8895c] disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              {uploading ? "Lädt hoch..." : "Upload starten"}
-            </button>
-          </div>
+              {selectedFiles.length > 0 && (
+                <div className="space-y-1">
+                  {selectedFiles.map((f, i) => (
+                    <div key={i} className="flex items-center gap-2 text-xs text-stone-500">
+                      <FileText className="h-3.5 w-3.5 shrink-0 text-stone-400" />
+                      <span className="truncate">{f.name}</span>
+                      <span className="ml-auto shrink-0 text-stone-300">
+                        {formatFileSize(f.size)}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
 
-          {uploadProgress > 0 ? (
-            <div className="mt-4 flex items-center gap-3">
-              <div className="h-2 flex-1 overflow-hidden rounded-full border border-stone-200 bg-[#f2ede6]">
-                <div
-                  className="h-full bg-[#796849] transition-all"
-                  style={{ width: `${uploadProgress}%` }}
-                />
+              <button
+                type="button"
+                onClick={handleUploadDocuments}
+                disabled={uploading || selectedFiles.length === 0}
+                className="w-full rounded-xl bg-stone-900 px-4 py-2.5 text-xs font-semibold text-white transition hover:bg-stone-700 disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                {uploading ? "Lädt hoch…" : "Upload starten"}
+              </button>
+            </div>
+
+            {uploadProgress > 0 && (
+              <div className="mt-3 flex items-center gap-3">
+                <div className="h-1 flex-1 overflow-hidden rounded-full bg-stone-200">
+                  <div
+                    className="h-full bg-stone-800 transition-all"
+                    style={{ width: `${uploadProgress}%` }}
+                  />
+                </div>
+                <span className="text-[10px] font-semibold text-stone-400">
+                  {uploadProgress}%
+                </span>
               </div>
-              <div className="w-12 text-right text-xs font-semibold text-stone-500">
-                {uploadProgress}%
+            )}
+
+            {uploadMessage && (
+              <div className="mt-3 text-xs text-stone-500">{uploadMessage}</div>
+            )}
+          </div>
+        </Card>
+
+        {/* Dokumenten-Liste */}
+        <Card className="p-7">
+          <div className="flex items-end justify-between gap-4">
+            <div>
+              <SectionLabel>Bibliothek</SectionLabel>
+              <div className="mt-1.5 text-xl font-semibold text-stone-900">
+                Hochgeladene Dokumente
               </div>
             </div>
-          ) : null}
-
-          {uploadMessage ? (
-            <div className="mt-3 text-sm text-stone-600">{uploadMessage}</div>
-          ) : null}
-
-          <div className="mt-5 text-sm font-semibold text-[#796849]">
-            Eure hochgeladenen Dokumente:
+            <div className="rounded-full border border-stone-100 bg-stone-50 px-3 py-1 text-xs font-semibold text-stone-400">
+              {documents.length} {documents.length === 1 ? "Datei" : "Dateien"}
+            </div>
           </div>
 
-          <div className="mt-3 space-y-2">
+          <div className="mt-6 space-y-2">
             {documents.length === 0 ? (
-              <div className="text-sm italic text-stone-500">
-                Noch keine Uploads vorhanden.
+              <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-stone-200 bg-stone-50 py-14 text-center">
+                <FileText className="h-8 w-8 text-stone-300" />
+                <div className="mt-3 text-sm font-semibold text-stone-400">
+                  Noch keine Dokumente vorhanden
+                </div>
+                <div className="mt-1 text-xs text-stone-300">
+                  Lade links dein erstes Dokument hoch
+                </div>
               </div>
             ) : (
               documents.map((item) => (
                 <div
                   key={item.id}
-                  className="flex items-center justify-between gap-3 rounded-[14px] border border-stone-200 bg-white px-4 py-3"
+                  className="group flex items-center justify-between gap-4 rounded-2xl border border-stone-100 bg-white px-5 py-4 shadow-sm transition hover:shadow-md"
                 >
+                  {/* Icon */}
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-stone-100 text-stone-500 transition group-hover:bg-stone-900 group-hover:text-white">
+                    <FileText className="h-4 w-4" />
+                  </div>
+
+                  {/* Info */}
                   <div className="min-w-0 flex-1">
-                    <div className="truncate text-sm font-semibold text-stone-900">
+                    <div className="truncate text-sm font-semibold text-stone-800">
                       {item.name}
                     </div>
-                    <div className="text-xs text-stone-500">
+                    <div className="mt-0.5 text-[11px] text-stone-400">
                       {[item.contentType, formatFileSize(item.size)]
                         .filter(Boolean)
-                        .join(" | ")}
+                        .join(" · ")}
                     </div>
                   </div>
 
+                  {/* Aktionen */}
                   <div className="flex shrink-0 items-center gap-3">
                     <a
                       href={item.url}
                       target="_blank"
                       rel="noreferrer"
-                      className="text-sm font-semibold text-[#796849] hover:underline"
+                      className="rounded-lg border border-stone-200 bg-stone-50 px-3 py-1.5 text-[11px] font-semibold text-stone-600 transition hover:border-stone-300 hover:bg-white hover:text-stone-900"
                     >
                       Öffnen
                     </a>
                     <button
                       type="button"
                       onClick={() => handleDeleteDocument(item)}
-                      className="text-sm font-semibold text-red-700 hover:underline"
+                      className="rounded-lg border border-transparent px-3 py-1.5 text-[11px] font-semibold text-red-400 transition hover:border-red-100 hover:bg-red-50 hover:text-red-600"
                     >
                       Löschen
                     </button>
@@ -358,8 +407,8 @@ export default function DokumentePage() {
               ))
             )}
           </div>
-        </div>
-      </SoftBlock>
+        </Card>
+      </div>
     </div>
   );
 }
